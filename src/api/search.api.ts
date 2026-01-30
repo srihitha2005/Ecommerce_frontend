@@ -1,3 +1,5 @@
+//kept it for filter but wasnt able to use filtering properly
+
 import { productAPI } from './axios.config';
 import { ProductListResponse } from '../types/product.types';
 

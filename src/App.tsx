@@ -42,11 +42,23 @@ import NotFoundPage from './pages/NotFoundPage';
 const App: React.FC = () => {
   return (
     <Router 
+    /** * FUTURE FLAGS: Opting into React Router v7 behavior early.
+     * 1. startTransition: Keeps UI responsive during heavy page transitions.
+     * 2. relativeSplatPath: Fixes link logic when using wildcard (*) routes.
+     * This prevents console warnings and future-proofs the app for the next major upgrade.
+    */
       future={{
         v7_startTransition: true,
         v7_relativeSplatPath: true
       }}
     >
+       {/* /** WRAPPER HIERARCHY RECOLLECTION:
+        * 1. Router: The "Spine" - provides navigation context to all sub-components.
+        * 2. AuthProvider: The "Identity" - tells the app who the user is (Customer vs Merchant).
+        * 3. CartProvider: The "Shared Basket" - keeps cart items safe while navigating between pages.
+        * * Note: Auth is outside Cart because Cart needs Auth data to fetch user-specific items.
+        */
+        }
       <AuthProvider>
         <CartProvider>
           <div className="min-h-screen bg-gray-50 flex flex-col">

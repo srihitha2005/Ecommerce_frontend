@@ -1,12 +1,27 @@
-import { authAPI } from './axios.config';
+ /** * CHOOSING AXIOS OVER FETCH:
+ * 1. GLOBAL CONFIG: One place to set 'withCredentials' and Base URLs.
+ * 2. REQUEST INTERCEPTORS: No more copy-pasting the JWT Token in every API call.
+ * 3. RESPONSE INTERCEPTORS: Catch 403 (Forbidden) or 401 (Expired) errors in one place.
+ * 4. CANCEL REQUESTS: Allows the app to stop a request if a user navigates away quickly.
+ * easier timeout too
+ * no need to define json nall independently
+ */
+
+ /** * AUTH SERVICE: The "Translator" for Auth data.
+ * PURPOSE: 
+ * 1. Communicates with the Auth Microservice.
+ * 2. Normalizes inconsistent backend data (e.g., 'sub' vs 'email').
+ * 3. Extracts nested payloads so the UI receives a flat, clean object.
+ * LOCATION: In /api because it handles external network communication logic only.
+ */
+
+ import { authAPI } from './axios.config';
 import {
   LoginRequest,
   RegisterCustomerRequest,
   RegisterMerchantRequest,
   AuthResponse,
 } from '../types/auth.types';
-// Optional: If you want to be extra safe, install jwt-decode
-// import { jwtDecode } from "jwt-decode";
 
 export const authService = {
   // Helper to extract auth response from backend wrapper and normalize field names

@@ -13,12 +13,22 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'CUSTOMER' | 'MERCHANT'>('CUSTOMER');
   const [loading, setLoading] = useState(false);
+    /** * FORM ERRORS: Using Record<string, string> instead of a Map or literal object.
+   * 1. FLEXIBILITY: Allows adding dynamic error keys as validation fails.
+   * 2. TYPE SAFETY: Ensures all error values are strings, preventing logic bugs.
+   * 3. REACT-FRIENDLY: Standard objects are easier to spread {...errors} into state.
+   */
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState('');
   const { login, isMerchant } = useAuth();
   const navigate = useNavigate();
 
   const validate = (): boolean => {
+    /** * FORM ERRORS: Using Record<string, string> instead of a Map or literal object.
+     * 1. FLEXIBILITY: Allows adding dynamic error keys as validation fails.
+     * 2. TYPE SAFETY: Ensures all error values are strings, preventing logic bugs.
+     * 3. REACT-FRIENDLY: Standard objects are easier to spread {...errors} into state.
+     */
     const newErrors: Record<string, string> = {};
 
     if (!email) {
@@ -34,7 +44,12 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
+  /** * FORM SUBMISSION HANDLER:
+   * 1. e: React.FormEvent -> Provides Type Safety for the form submission.
+   * 2. e.preventDefault() -> CRITICAL: Stops the browser from refreshing the page.
+   * 3. Validation -> Prevents unnecessary API calls if fields are empty.
+   * 4. Async/Await -> Handles the 'wait time' for the Auth Service response.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setServerError('');

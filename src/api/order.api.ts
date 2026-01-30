@@ -5,6 +5,13 @@ import { OrderHistoryResponse, OrderDetailResponse } from '../types/order.types'
 console.log("📂 [OrderAPI] Loaded.");
 
 export const orderService = {
+  /** * ASYNC & PROMISES:
+ * 1. Purpose: Prevents the UI from freezing during long-running network requests.
+ * 2. States: Starts as 'Pending', then becomes 'Fulfilled' (Success) or 'Rejected' (Error).
+ * 3. Type Safety: Promise<CartResponse> ensures we always know the "shape" 
+ * of the data that arrives once the request finishes.
+ */
+
   getCart: async (): Promise<CartResponse> => {
     const response = await orderAPI.get('/cart');
     return response.data;
