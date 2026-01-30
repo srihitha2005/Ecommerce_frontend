@@ -16,7 +16,7 @@ export const searchService = {
   ): Promise<ProductListResponse> => {
     const response = await productAPI.get('/products/search', {
       params: {
-        q: query,
+        keyword: query,
         ...filters,
       },
     });

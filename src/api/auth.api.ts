@@ -5,38 +5,59 @@ import {
   RegisterMerchantRequest,
   AuthResponse,
 } from '../types/auth.types';
+// Optional: If you want to be extra safe, install jwt-decode
+// import { jwtDecode } from "jwt-decode";
 
 export const authService = {
   // Helper to extract auth response from backend wrapper and normalize field names
   extractAuthResponse: (response: any): AuthResponse => {
     let authData = response;
     
-    // If response has a 'data' field with auth info, use it
+    // 1. Unwrap common API wrappers (data.data or data.success)
     if (response.data && typeof response.data === 'object') {
-      if ((response.data.token || response.data.success) && response.data.data) {
-        // Backend response format: { success: true, data: { token, user } }
+      // Handle { success: true, data: { ... } }
+      if (response.data.data) {
         authData = response.data.data;
-      } else if (response.data.token && response.data.user) {
-        // Backend response format: { data: { token, user } }
+      } else {
+        // Handle { data: { ... } } or just the flat axios data
         authData = response.data;
       }
     }
     
-    // Validate we have token and user
+    // 2. Validate Token
     if (!authData.token) {
+      console.error("❌ Full Response Data:", authData); 
       throw new Error('No token in response');
     }
-    if (!authData.user) {
-      throw new Error('No user in response');
+
+    // 3. Find the User Object (Nested vs Flat)
+    let rawUser = authData.user;
+
+    // ✅ FIX: If no nested 'user' object, build it from the flat root fields
+    if (!rawUser) {
+        // Check if we have user fields at the root (like in your JSON snippet)
+        if (authData.userId || authData.sub) {
+            rawUser = {
+                userId: authData.userId,
+                email: authData.sub || authData.email, // JWT often uses 'sub' for email
+                fullName: authData.fullName,
+                role: authData.role
+            };
+        }
+    }
+
+    // 4. Final Validation
+    if (!rawUser) {
+       console.error("❌ Failed to find user in:", authData);
+       throw new Error('No user in response');
     }
     
-    // Normalize user object - handle both camelCase and snake_case
-    const user: any = authData.user;
+    // 5. Normalize user object
     const normalizedUser = {
-      userId: user.userId || user.id,
-      email: user.email,
-      fullName: user.fullName || user.full_name || user.name,
-      role: (user.role || 'CUSTOMER').toUpperCase() as 'CUSTOMER' | 'MERCHANT',
+      userId: rawUser.userId || rawUser.id,
+      email: rawUser.email || rawUser.sub, // Handle 'sub' from JWT standard
+      fullName: rawUser.fullName || rawUser.full_name || rawUser.name,
+      role: (rawUser.role || 'CUSTOMER').toUpperCase() as 'CUSTOMER' | 'MERCHANT',
     };
     
     return {
@@ -47,38 +68,24 @@ export const authService = {
     };
   },
 
-  // Login - with optional role parameter
+  // ... keep the rest of your methods (login, register, logout) exactly the same ...
   login: async (credentials: LoginRequest, role?: 'CUSTOMER' | 'MERCHANT'): Promise<AuthResponse> => {
     const payload = role ? { ...credentials, role } : credentials;
-    console.log('🔑 Login request payload:', payload);
     const response = await authAPI.post('/login', payload);
-    console.log('📨 Login API response:', response);
-    const authData = authService.extractAuthResponse(response.data);
-    console.log('✅ Extracted auth data:', authData);
-    return authData;
+    return authService.extractAuthResponse(response); // Pass the whole axios response
   },
-
-  // Register Customer
+  
+  // ... rest of the file
   registerCustomer: async (data: RegisterCustomerRequest): Promise<AuthResponse> => {
-    console.log('🔑 Register customer request:', data);
     const response = await authAPI.post('/register/customer', data);
-    console.log('📨 Register customer API response:', response);
-    const authData = authService.extractAuthResponse(response.data);
-    console.log('✅ Extracted auth data:', authData);
-    return authData;
+    return authService.extractAuthResponse(response);
   },
 
-  // Register Merchant
   registerMerchant: async (data: RegisterMerchantRequest): Promise<AuthResponse> => {
-    console.log('🔑 Register merchant request:', data);
     const response = await authAPI.post('/register/merchant', data);
-    console.log('📨 Register merchant API response:', response);
-    const authData = authService.extractAuthResponse(response.data);
-    console.log('✅ Extracted auth data:', authData);
-    return authData;
+    return authService.extractAuthResponse(response);
   },
 
-  // Logout (client-side only, clear token)
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -86,13 +93,11 @@ export const authService = {
     localStorage.removeItem('customerProfile');
   },
 
-  // Get current user from token
   getCurrentUser: () => {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
   },
 
-  // Get stored token
   getToken: () => {
     return localStorage.getItem('token');
   },
