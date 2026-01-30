@@ -37,7 +37,7 @@ const Header: React.FC = () => {
         {/* Top Bar */}
         <div className="flex items-center justify-between py-4">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to={isMerchant ? '/merchant/dashboard' : '/'} className="flex items-center space-x-2">
             <ShoppingCartIcon className="h-8 w-8" />
             <span className="text-2xl font-bold">ShopEase</span>
           </Link>
@@ -87,13 +87,15 @@ const Header: React.FC = () => {
                       >
                         {isMerchant ? 'Dashboard' : 'My Profile'}
                       </Link>
-                      <Link
-                        to="/orders"
-                        className="block px-4 py-2 hover:bg-gray-100"
-                        onClick={() => setShowUserMenu(false)}
-                      >
-                        My Orders
-                      </Link>
+                      {!isMerchant && (
+                        <Link
+                          to="/orders"
+                          className="block px-4 py-2 hover:bg-gray-100"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          My Orders
+                        </Link>
+                      )}
                       <button
                         onClick={() => {
                           setShowUserMenu(false);

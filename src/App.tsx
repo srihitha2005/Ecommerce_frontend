@@ -130,7 +130,7 @@ const App: React.FC = () => {
                   }
                 >
                   {/* Default redirect: Login -> /merchant -> /merchant/products */}
-                  <Route index element={<Navigate to="/merchant/products" replace />} />
+                  <Route index element={<Navigate to="/merchant/dashboard" replace />} />
                   
                   <Route path="products" element={<ProductManagementPage />} />
                   <Route path="add-product" element={<AddProductPage />} />

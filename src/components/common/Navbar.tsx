@@ -29,7 +29,7 @@ const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to={isMerchant ? '/merchant/dashboard' : '/'} className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold">E</span>
             </div>
@@ -57,7 +57,8 @@ const Navbar: React.FC = () => {
                 <Link to="/merchant/dashboard" className="text-gray-600 hover:text-gray-900">
                   Dashboard
                 </Link>
-                <Link to="/merchant/products" className="text-gray-600 hover:text-gray-900">
+                {/* Point merchant 'Products' nav to dashboard to avoid showing all products */}
+                <Link to="/merchant/dashboard" className="text-gray-600 hover:text-gray-900">
                   Products
                 </Link>
                 <Link to="/merchant/orders" className="text-gray-600 hover:text-gray-900">
@@ -81,7 +82,7 @@ const Navbar: React.FC = () => {
                 <Link to="/products" className="text-gray-600 hover:text-gray-900">
                   Products
                 </Link>
-                <Link to="/cart" className="relative text-gray-600 hover:text-gray-900">
+                <Link to={isMerchant ? '/' : '/cart'} className="relative text-gray-600 hover:text-gray-900">
                   <ShoppingCartIcon className="h-6 w-6" />
                   {cartCount > 0 && (
                     <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -107,10 +108,10 @@ const Navbar: React.FC = () => {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center space-x-4">
-            {!isMerchant && isAuthenticated && (
-              <Link to="/cart" className="relative text-gray-600 hover:text-gray-900">
+            {isAuthenticated && (
+              <Link to={isMerchant ? '/' : '/cart'} className="relative text-gray-600 hover:text-gray-900">
                 <ShoppingCartIcon className="h-6 w-6" />
-                {cartCount > 0 && (
+                {cartCount > 0 && !isMerchant && (
                   <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {cartCount}
                   </span>

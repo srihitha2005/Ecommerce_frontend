@@ -4,6 +4,7 @@ import { productService } from '../../api/product.api';
 import { Product } from '../../types/product.types';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { toast } from 'react-toastify';
+import { useAuth } from '../../hooks/useAuth';
 
 const ProductListPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -16,10 +17,17 @@ const ProductListPage: React.FC = () => {
     search: '',
   });
   const navigate = useNavigate();
+  const { isAuthenticated, isMerchant } = useAuth();
 
   useEffect(() => {
+    // If merchant is logged in, redirect to merchant dashboard instead of public products page
+    if (isAuthenticated && isMerchant) {
+      navigate('/merchant/dashboard');
+      return;
+    }
+
     fetchProducts();
-  }, []);
+  }, [isAuthenticated, isMerchant, navigate]);
 
   const fetchProducts = async () => {
     try {

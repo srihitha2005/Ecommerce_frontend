@@ -1,5 +1,15 @@
 import React from 'react';
 import { Cart } from '../../types/cart.types';
+/**
+ * REVISION NOTE: Why Heroicons over others?
+ * 1. TAILWIND NATIVE: Built by the same team that made Tailwind. No fighting with custom CSS.
+ * 2. SVG vs ICON FONTS: Unlike FontAwesome (which uses fonts), this uses pure SVGs. 
+ * SVGs are more accessible, sharper, and don't suffer from "flickering" when the page loads.
+ * 3. TREE SHAKING: You only import the "X". Other libraries often make you 
+ * load the whole library (slowing down the app).
+ * 4. CLEANER LOOK: Heroicons has a very "Apple-like" or modern look compared 
+ * to the "chunkier" look of older libraries.
+ */
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import CartItem from './CartItem';
 
@@ -11,7 +21,16 @@ interface CartDrawerProps {
   onRemove?: (merchantProductId: string) => void;
   onUpdateQuantity?: (merchantProductId: string, quantity: number) => void;
 }
-
+/**
+ * REVISION NOTE: React.FC<CartDrawerProps>
+ * * 1. WHAT: 'React.FC' stands for "Function Component." It's a TypeScript type.
+ * 2. WHY USE IT: It tells TypeScript that this function returns a UI (JSX) 
+ * and provides automatic autocomplete for things like 'children'.
+ * 3. PROPS (<CartDrawerProps>): This is a "Generic." It links this component 
+ * to a specific list of data (the Interface) it expects to receive.
+ * 4. DESTRUCTURING ({ open }): Instead of writing 'props.open', we pull 'open' 
+ * directly out of the box so we can use it immediately.
+ */
 const CartDrawer: React.FC<CartDrawerProps> = ({
   open,
   onClose,

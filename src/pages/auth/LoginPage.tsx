@@ -10,7 +10,7 @@ const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{email?: string; password?: string}>({});
   
-  const { login, isMerchant } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const validate = (): boolean => {
@@ -37,13 +37,19 @@ const LoginPage: React.FC = () => {
     
     try {
       setLoading(true);
+      // Call login and capture the response to get user role directly
       await login(email, password);
       toast.success('Login successful!');
       
-      // Redirect based on role after state update
-      setTimeout(() => {
-        navigate(isMerchant ? '/merchant/dashboard' : '/');
-      }, 100);
+      // Get the stored user from localStorage to determine redirect
+      const storedUser = localStorage.getItem('user');
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      const isMerchant = user?.role === 'MERCHANT';
+      
+      console.log(`🔐 [LoginPage] Login redirect check - Role: ${user?.role}, IsMerchant: ${isMerchant}`);
+      
+      // Redirect immediately based on role
+      navigate(isMerchant ? '/merchant/dashboard' : '/');
     } catch (error: any) {
       toast.error(error.message || 'Login failed. Please check your credentials.');
     } finally {

@@ -47,9 +47,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       setLoading(true);
       const response = await orderService.addToCart({ merchantProductId, quantity });
-      setCart(response.data);
-      toast.success('Added to cart');
-      await fetchCart(); 
+      // The backend may return null data for add-to-cart (it enqueues or returns no payload).
+      // Avoid overwriting the local cart state with null — fetch the latest cart instead.
+      await fetchCart();
+      toast.success(response.message || 'Added to cart');
     } catch (error: any) {
       console.error("❌ [CartContext] Add Error:", error);
       toast.error(error.response?.data?.message || 'Add failed');
