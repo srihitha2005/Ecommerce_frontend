@@ -3,7 +3,7 @@ import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'ax
 // Create axios instances for different services
 export const authAPI: AxiosInstance = axios.create({
   baseURL: process.env.REACT_APP_AUTH_SERVICE_URL,
-  timeout: 10000,
+  timeout: 0,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -11,7 +11,7 @@ export const authAPI: AxiosInstance = axios.create({
 
 export const productAPI: AxiosInstance = axios.create({
   baseURL: process.env.REACT_APP_PRODUCT_SERVICE_URL,
-  timeout: 10000,
+  timeout: 0,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -19,7 +19,7 @@ export const productAPI: AxiosInstance = axios.create({
 
 export const reviewAPI: AxiosInstance = axios.create({
   baseURL: process.env.REACT_APP_REVIEW_SERVICE_URL,
-  timeout: 10000,
+  timeout: 0,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -27,7 +27,7 @@ export const reviewAPI: AxiosInstance = axios.create({
 
 export const inventoryAPI: AxiosInstance = axios.create({
   baseURL: process.env.REACT_APP_INVENTORY_SERVICE_URL,
-  timeout: 10000,
+  timeout: 0,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -35,7 +35,7 @@ export const inventoryAPI: AxiosInstance = axios.create({
 
 export const orderAPI: AxiosInstance = axios.create({
   baseURL: process.env.REACT_APP_ORDER_SERVICE_URL,
-  timeout: 10000,
+  timeout: 0,
   headers: {
     'Content-Type': 'application/json',
   },

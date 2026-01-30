@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { inventoryService } from '../../api/inventory.api';
 import { useAuth } from '../../hooks/useAuth';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import InventoryManager from '../../components/merchant/InventoryManager';
+import InventoryManager from '../../components/merchant/InventoryManager'; // Assuming you have this component
 import { toast } from 'react-toastify';
 
 const InventoryPage: React.FC = () => {
@@ -35,14 +35,18 @@ const InventoryPage: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Inventory Management</h1>
-      <InventoryManager inventory={inventory} onRefresh={fetchInventory} />
+    <div className="container mx-auto px-4">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Inventory Management</h1>
+        <p className="text-gray-500 mt-1">Update stock levels and pricing</p>
+      </div>
+      
+      <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
+        <InventoryManager inventory={inventory} onRefresh={fetchInventory} />
+      </div>
     </div>
   );
 };
