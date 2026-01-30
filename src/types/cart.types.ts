@@ -1,8 +1,8 @@
 export interface CartItem {
-  merchantProductId: number;
+  merchantProductId: string;
   quantity: number;
-  price: number;
-  subTotal: number;
+  price: string;
+  subTotal: string;
   product?: {
     name: string;
     imageUrls: string[];
@@ -13,26 +13,18 @@ export interface CartItem {
 export interface Cart {
   cartId: number;
   items: CartItem[];
-  totalValue: number;
+  totalValue: string;
 }
 
 export interface AddToCartRequest {
-  merchantProductId: number;
+  merchantProductId: string;
   quantity: number;
 }
 
 export interface CartResponse {
   success: boolean;
   message: string;
-  data: Cart | null;
-}
-
-export interface OrderItem {
-  id: number;
-  merchantProductId: number;
-  price: number;
-  quantity: number;
-  orderId: number;
+  data: Cart;
 }
 
 export interface CheckoutResponse {
@@ -44,10 +36,10 @@ export interface CheckoutResponse {
 export interface CartContextType {
   cart: Cart | null;
   loading: boolean;
-  addToCart: (merchantProductId: number, quantity: number) => Promise<void>;
-  removeFromCart: (merchantProductId: number) => Promise<void>;
-  updateQuantity: (merchantProductId: number, quantity: number) => Promise<void>;
-  clearCart: () => void;
+  addToCart: (merchantProductId: string, quantity: number) => Promise<void>;
+  removeFromCart: (merchantProductId: string) => Promise<void>;
+  updateQuantity: (merchantProductId: string, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
   fetchCart: () => Promise<void>;
   itemCount: number;
 }

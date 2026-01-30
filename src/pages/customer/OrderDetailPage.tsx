@@ -7,6 +7,7 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { toast } from 'react-toastify';
 
 const OrderDetailPage: React.FC = () => {
+  // useParams extracts the orderId as a string
   const { orderId } = useParams<{ orderId: string }>();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -16,6 +17,7 @@ const OrderDetailPage: React.FC = () => {
     if (orderId) {
       fetchOrderDetails();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
   const fetchOrderDetails = async () => {
@@ -23,7 +25,8 @@ const OrderDetailPage: React.FC = () => {
 
     try {
       setLoading(true);
-      const response = await orderService.getOrderDetails(parseInt(orderId));
+      // FIXED: Removed parseInt. API now expects the string MongoDB ID
+      const response = await orderService.getOrderDetails(orderId);
       if (response.success) {
         setOrder(response.data);
       } else {
@@ -84,7 +87,8 @@ const OrderDetailPage: React.FC = () => {
                   <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold">${item.price.toFixed(2)}</p>
+                  {/* FIXED: Wrap price string in Number() before toFixed() */}
+                  <p className="font-semibold">${Number(item.price).toFixed(2)}</p>
                   <p className="text-sm text-gray-600">Each</p>
                 </div>
               </div>
@@ -96,7 +100,8 @@ const OrderDetailPage: React.FC = () => {
         <div className="mt-8 pt-8 border-t">
           <div className="flex justify-between items-center text-xl font-bold">
             <span>Total Amount</span>
-            <span className="text-2xl text-blue-600">${order.totalAmount.toFixed(2)}</span>
+            {/* FIXED: Wrap totalAmount string in Number() before toFixed() */}
+            <span className="text-2xl text-blue-600">${Number(order.totalAmount).toFixed(2)}</span>
           </div>
         </div>
 

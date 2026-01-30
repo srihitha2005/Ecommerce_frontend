@@ -15,7 +15,6 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const { isAuthenticated, isCustomer } = useAuth();
 
-  // Fetch cart when user is authenticated
   useEffect(() => {
     if (isAuthenticated && isCustomer) {
       fetchCart();
@@ -33,7 +32,6 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       setCart(response.data);
     } catch (error: any) {
       console.error('Error fetching cart:', error);
-      // Don't show error toast for empty cart
       if (error.response?.status !== 404) {
         toast.error('Failed to load cart');
       }
@@ -42,7 +40,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     }
   };
 
-  const addToCart = async (merchantProductId: number, quantity: number) => {
+  // Updated merchantProductId to string, quantity to number
+  const addToCart = async (merchantProductId: string, quantity: number) => {
     if (!isAuthenticated || !isCustomer) {
       toast.error('Please login to add items to cart');
       return;
@@ -53,7 +52,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       const response = await orderService.addToCart({ merchantProductId, quantity });
       setCart(response.data);
       toast.success('Item added to cart');
-      await fetchCart(); // Refresh cart
+      await fetchCart(); 
     } catch (error: any) {
       console.error('Error adding to cart:', error);
       toast.error(error.response?.data?.message || 'Failed to add item to cart');
@@ -63,12 +62,12 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     }
   };
 
-  const removeFromCart = async (merchantProductId: number) => {
+  const removeFromCart = async (merchantProductId: string) => {
     try {
       setLoading(true);
       await orderService.removeFromCart(merchantProductId);
       toast.success('Item removed from cart');
-      await fetchCart(); // Refresh cart
+      await fetchCart();
     } catch (error: any) {
       console.error('Error removing from cart:', error);
       toast.error('Failed to remove item');
@@ -78,7 +77,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     }
   };
 
-  const updateQuantity = async (merchantProductId: number, quantity: number) => {
+  const updateQuantity = async (merchantProductId: string, quantity: number) => {
     if (quantity < 1) {
       await removeFromCart(merchantProductId);
       return;
@@ -87,7 +86,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       await orderService.updateCartItem(merchantProductId, quantity);
-      await fetchCart(); // Refresh cart
+      await fetchCart();
     } catch (error: any) {
       console.error('Error updating quantity:', error);
       toast.error('Failed to update quantity');
