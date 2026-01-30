@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 
+// Load token debugger for development (available in browser console)
+import './utils/tokenDebugger';
+
 // Suppress WebSocket connection errors in development
 if (process.env.NODE_ENV === 'development') {
   const originalError = console.error;

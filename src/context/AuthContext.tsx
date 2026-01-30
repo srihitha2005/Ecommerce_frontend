@@ -11,146 +11,116 @@ import {
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [merchantProfile, setMerchantProfile] = useState<MerchantProfile | null>(null);
   const [customerProfile, setCustomerProfile] = useState<CustomerProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on mount
   useEffect(() => {
     const loadUser = () => {
+      console.group("💾 [AuthContext] Hydrating State from LocalStorage");
       try {
         const storedToken = localStorage.getItem('token');
         const storedUser = localStorage.getItem('user');
-        const storedMerchantProfile = localStorage.getItem('merchantProfile');
-        const storedCustomerProfile = localStorage.getItem('customerProfile');
 
-        if (storedToken && storedUser) {
+        if (storedToken && storedUser && storedUser !== "undefined") {
+          console.log("✅ Found Token and User data.");
           setToken(storedToken);
           setUser(JSON.parse(storedUser));
           
-          if (storedMerchantProfile) {
-            setMerchantProfile(JSON.parse(storedMerchantProfile));
+          const smp = localStorage.getItem('merchantProfile');
+          if (smp && smp !== "undefined") {
+            console.log("✅ Found Merchant Profile.");
+            setMerchantProfile(JSON.parse(smp));
           }
           
-          if (storedCustomerProfile) {
-            setCustomerProfile(JSON.parse(storedCustomerProfile));
+          const scp = localStorage.getItem('customerProfile');
+          if (scp && scp !== "undefined") {
+            console.log("✅ Found Customer Profile.");
+            setCustomerProfile(JSON.parse(scp));
           }
+        } else {
+          console.log("ℹ️ No valid session found in storage.");
         }
       } catch (error) {
-        console.error('Error loading user from storage:', error);
-        logout();
+        console.error('❌ Error parsing storage data:', error);
       } finally {
         setLoading(false);
+        console.groupEnd();
       }
     };
-
     loadUser();
   }, []);
 
   const login = async (email: string, password: string, role?: 'CUSTOMER' | 'MERCHANT') => {
-    try {
-      console.log('Login attempt with:', { email, role });
-      const response = await authService.login({ email, password }, role);
-      console.log('Login response received:', response);
-      
-      // Validate response has required fields
-      if (!response.token || !response.user) {
-        throw new Error('Invalid response: missing token or user data');
-      }
-      
-      // Store auth data
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      
-      console.log('Stored token and user');
-      setToken(response.token);
-      setUser(response.user);
-
-      // Store profile based on role
-      if (response.user.role === 'MERCHANT' && response.merchantProfile) {
-        localStorage.setItem('merchantProfile', JSON.stringify(response.merchantProfile));
-        setMerchantProfile(response.merchantProfile);
-      } else if (response.user.role === 'CUSTOMER' && response.customerProfile) {
-        localStorage.setItem('customerProfile', JSON.stringify(response.customerProfile));
-        setCustomerProfile(response.customerProfile);
-      }
-      
-      console.log('Login successful');
-    } catch (error: any) {
-      console.error('Login error:', error);
-      throw new Error(error.response?.data?.message || error.message || 'Login failed');
+    console.log(`🔐 [AuthContext] Initiating Login for: ${email}`);
+    const response = await authService.login({ email, password }, role);
+    
+    if (!response.token || !response.user) {
+      throw new Error('Invalid response from server');
     }
+
+    localStorage.setItem('token', response.token);
+    localStorage.setItem('user', JSON.stringify(response.user));
+    setToken(response.token);
+    setUser(response.user);
+
+    if (response.user.role === 'MERCHANT' && response.merchantProfile) {
+      localStorage.setItem('merchantProfile', JSON.stringify(response.merchantProfile));
+      setMerchantProfile(response.merchantProfile);
+    } else if (response.user.role === 'CUSTOMER' && response.customerProfile) {
+      localStorage.setItem('customerProfile', JSON.stringify(response.customerProfile));
+      setCustomerProfile(response.customerProfile);
+    }
+    console.log("🎉 [AuthContext] Login Successful.");
   };
 
   const registerCustomer = async (data: RegisterCustomerRequest) => {
-    try {
-      const response = await authService.registerCustomer(data);
-      
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      
-      setToken(response.token);
-      setUser(response.user);
-
-      if (response.customerProfile) {
-        localStorage.setItem('customerProfile', JSON.stringify(response.customerProfile));
-        setCustomerProfile(response.customerProfile);
-      }
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      throw new Error(error.response?.data?.message || 'Registration failed');
+    const response = await authService.registerCustomer(data);
+    localStorage.setItem('token', response.token);
+    localStorage.setItem('user', JSON.stringify(response.user));
+    setToken(response.token);
+    setUser(response.user);
+    if (response.customerProfile) {
+      localStorage.setItem('customerProfile', JSON.stringify(response.customerProfile));
+      setCustomerProfile(response.customerProfile);
     }
   };
 
   const registerMerchant = async (data: RegisterMerchantRequest) => {
-    try {
-      const response = await authService.registerMerchant(data);
-      
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      
-      setToken(response.token);
-      setUser(response.user);
-
-      if (response.merchantProfile) {
-        localStorage.setItem('merchantProfile', JSON.stringify(response.merchantProfile));
-        setMerchantProfile(response.merchantProfile);
-      }
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      throw new Error(error.response?.data?.message || 'Registration failed');
+    const response = await authService.registerMerchant(data);
+    localStorage.setItem('token', response.token);
+    localStorage.setItem('user', JSON.stringify(response.user));
+    setToken(response.token);
+    setUser(response.user);
+    if (response.merchantProfile) {
+      localStorage.setItem('merchantProfile', JSON.stringify(response.merchantProfile));
+      setMerchantProfile(response.merchantProfile);
     }
   };
 
   const logout = () => {
+    console.log("🚪 [AuthContext] Logging out...");
     authService.logout();
     setUser(null);
     setToken(null);
     setMerchantProfile(null);
     setCustomerProfile(null);
+    window.location.href = '/login';
   };
 
-  const value: AuthContextType = {
-    user,
-    token,
-    merchantProfile,
-    customerProfile,
-    login,
-    registerCustomer,
-    registerMerchant,
-    logout,
-    isAuthenticated: !!user && !!token,
-    isMerchant: user?.role === 'MERCHANT',
-    isCustomer: user?.role === 'CUSTOMER',
-    loading,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{
+      user, token, merchantProfile, customerProfile, login,
+      registerCustomer, registerMerchant, logout,
+      isAuthenticated: !!user && !!token,
+      isMerchant: user?.role === 'MERCHANT',
+      isCustomer: user?.role === 'CUSTOMER',
+      loading,
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };

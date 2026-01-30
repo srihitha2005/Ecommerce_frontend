@@ -6,16 +6,13 @@ import { toast } from 'react-toastify';
 
 export const CartContext = createContext<CartContextType | undefined>(undefined);
 
-interface CartProviderProps {
-  children: ReactNode;
-}
-
-export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
+export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(false);
   const { isAuthenticated, isCustomer } = useAuth();
 
   useEffect(() => {
+    console.log(`🔄 [CartContext] Auth Trigger: Auth=${isAuthenticated}, Cust=${isCustomer}`);
     if (isAuthenticated && isCustomer) {
       fetchCart();
     } else {
@@ -24,73 +21,65 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   }, [isAuthenticated, isCustomer]);
 
   const fetchCart = async () => {
-    if (!isAuthenticated || !isCustomer) return;
-    
+    console.group("📡 [CartContext] Fetching Cart Data");
     try {
       setLoading(true);
       const response = await orderService.getCart();
+      console.log("📥 [CartContext] Received Data:", response.data);
       setCart(response.data);
     } catch (error: any) {
-      console.error('Error fetching cart:', error);
-      if (error.response?.status !== 404) {
+      console.error("❌ [CartContext] Error:", error.response?.status, error.message);
+      if (error.response?.status !== 404 && error.response?.status !== 403) {
         toast.error('Failed to load cart');
       }
     } finally {
       setLoading(false);
+      console.groupEnd();
     }
   };
 
-  // Updated merchantProductId to string, quantity to number
   const addToCart = async (merchantProductId: string, quantity: number) => {
+    console.log(`➕ [CartContext] Adding: ${merchantProductId} (Qty: ${quantity})`);
     if (!isAuthenticated || !isCustomer) {
-      toast.error('Please login to add items to cart');
+      toast.error('Please login as a customer to add items');
       return;
     }
-
     try {
       setLoading(true);
       const response = await orderService.addToCart({ merchantProductId, quantity });
       setCart(response.data);
-      toast.success('Item added to cart');
+      toast.success('Added to cart');
       await fetchCart(); 
     } catch (error: any) {
-      console.error('Error adding to cart:', error);
-      toast.error(error.response?.data?.message || 'Failed to add item to cart');
-      throw error;
+      console.error("❌ [CartContext] Add Error:", error);
+      toast.error(error.response?.data?.message || 'Add failed');
     } finally {
       setLoading(false);
     }
   };
 
   const removeFromCart = async (merchantProductId: string) => {
+    console.log(`🗑️ [CartContext] Removing: ${merchantProductId}`);
     try {
       setLoading(true);
       await orderService.removeFromCart(merchantProductId);
-      toast.success('Item removed from cart');
+      toast.success('Removed');
       await fetchCart();
-    } catch (error: any) {
-      console.error('Error removing from cart:', error);
-      toast.error('Failed to remove item');
-      throw error;
+    } catch (error) {
+      toast.error('Remove failed');
     } finally {
       setLoading(false);
     }
   };
 
   const updateQuantity = async (merchantProductId: string, quantity: number) => {
-    if (quantity < 1) {
-      await removeFromCart(merchantProductId);
-      return;
-    }
-
+    if (quantity < 1) return removeFromCart(merchantProductId);
     try {
       setLoading(true);
       await orderService.updateCartItem(merchantProductId, quantity);
       await fetchCart();
-    } catch (error: any) {
-      console.error('Error updating quantity:', error);
-      toast.error('Failed to update quantity');
-      throw error;
+    } catch (error) {
+      toast.error('Update failed');
     } finally {
       setLoading(false);
     }
@@ -102,26 +91,20 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       await orderService.clearCart();
       setCart(null);
       toast.success('Cart cleared');
-    } catch (error: any) {
-      console.error('Error clearing cart:', error);
-      toast.error('Failed to clear cart');
+    } catch (error) {
+      toast.error('Clear failed');
     } finally {
       setLoading(false);
     }
   };
 
-  const itemCount = cart?.items.reduce((sum, item) => sum + item.quantity, 0) || 0;
+  const itemCount = cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
 
-  const value: CartContextType = {
-    cart,
-    loading,
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    clearCart,
-    fetchCart,
-    itemCount,
-  };
-
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+  return (
+    <CartContext.Provider value={{
+      cart, loading, addToCart, removeFromCart, updateQuantity, clearCart, fetchCart, itemCount
+    }}>
+      {children}
+    </CartContext.Provider>
+  );
 };

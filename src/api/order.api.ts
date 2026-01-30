@@ -1,13 +1,8 @@
 import { orderAPI } from './axios.config';
-import {
-  AddToCartRequest,
-  CartResponse,
-  CheckoutResponse,
-} from '../types/cart.types';
-import {
-  OrderHistoryResponse,
-  OrderDetailResponse,
-} from '../types/order.types';
+import { AddToCartRequest, CartResponse, CheckoutResponse } from '../types/cart.types';
+import { OrderHistoryResponse, OrderDetailResponse } from '../types/order.types';
+
+console.log("📂 [OrderAPI] Loaded.");
 
 export const orderService = {
   getCart: async (): Promise<CartResponse> => {
@@ -26,10 +21,7 @@ export const orderService = {
   },
 
   updateCartItem: async (merchantProductId: string, quantity: number): Promise<CartResponse> => {
-    const response = await orderAPI.put('/cart/update', {
-      merchantProductId,
-      quantity,
-    });
+    const response = await orderAPI.put('/cart/update', { merchantProductId, quantity });
     return response.data;
   },
 
@@ -48,13 +40,13 @@ export const orderService = {
     return response.data;
   },
 
-  getOrderDetails: async (orderId: string): Promise<OrderDetailResponse> => {
-    const response = await orderAPI.get(`/orders/${orderId}`);
+  getMerchantOrders: async (): Promise<OrderHistoryResponse> => {
+    const response = await orderAPI.get('/merchant/orders');
     return response.data;
   },
 
-  getMerchantOrders: async (): Promise<OrderHistoryResponse> => {
-    const response = await orderAPI.get('/merchant/orders');
+  getOrderDetails: async (orderId: string): Promise<OrderDetailResponse> => {
+    const response = await orderAPI.get(`/orders/${orderId}`);
     return response.data;
   },
 
