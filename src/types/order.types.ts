@@ -1,33 +1,33 @@
 export interface OrderItem {
-  id: number;
-  merchantProductId: number;
+  id: string;
+  merchantProductId: string;
   productName: string;
   productImage: string;
-  price: number;
+  price: string;
   quantity: number;
-  orderId: number;
+  orderId: string;
 }
 
 export interface Order {
-  orderId: number;
-  totalAmount: number;
+  orderId: string;
+  totalAmount: string;
   status: 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'PROCESSING';
   orderDate: string;
   deliveryDate?: string;
   items?: OrderItem[];
   paymentMethod?: string;
   shippingAddress?: string;
-  merchantId?: number;
+  merchantId?: string;
 }
 
 export interface MerchantOrder {
-  orderId: number;
-  totalAmount: number;
+  orderId: string;
+  totalAmount: string;
   status: 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'PROCESSING';
   orderDate: string;
   deliveryDate?: string;
   items?: OrderItem[];
-  customerId?: number;
+  customerId?: string;
   customerName?: string;
   customerEmail?: string;
 }
@@ -35,13 +35,13 @@ export interface MerchantOrder {
 export interface CheckoutRequest {
   paymentMethod: string;
   shippingAddress: string;
-  cartId?: number;
+  cartId?: string;
 }
 
 export interface CheckoutResponse {
   success: boolean;
   message: string;
-  data: number; // orderId
+  data: string; // orderId
 }
 
 export interface OrderHistoryResponse {

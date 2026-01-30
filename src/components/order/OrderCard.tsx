@@ -43,7 +43,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onClick }) => {
 
         <div className="text-right">
           <p className="text-2xl font-bold text-blue-600 mb-2">
-            ${order.totalAmount.toFixed(2)}
+            ${parseFloat(order.totalAmount).toFixed(2)}
           </p>
           <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(order.status)}`}>
             {order.status}

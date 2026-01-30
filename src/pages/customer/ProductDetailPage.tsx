@@ -25,36 +25,62 @@ const ProductDetailPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("🔍 Mounting ProductDetail with ID:", id);
     fetchProductDetails();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const fetchProductDetails = async () => {
-    if (!id) return;
+    if (!id) {
+      console.error("❌ No ID found");
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
-      const [productRes, reviewsRes, ratingRes] = await Promise.all([
-        productService.getProductById(id),
-        reviewService.getProductReviews(id),
-        reviewService.getAverageRating(id),
-      ]);
+      console.log("📡 Step 1: Fetching core product data...");
+      
+      // 1. Fetch the product first and wait for it
+      const productRes = await productService.getProductById(id);
 
       if (productRes.success) {
+        console.log("✅ Product loaded. UI will now display.");
         setProduct(productRes.data);
+        // WE STOP LOADING HERE so the user isn't stuck behind a spinner
+        setLoading(false); 
+      } else {
+        toast.error(productRes.message || 'Product not found');
+        setLoading(false);
+        return;
       }
 
-      if (reviewsRes.success) {
-        setReviews(reviewsRes.data);
-      }
+      // 2. Fetch secondary data (reviews/ratings) without 'await'
+      // This allows them to load in the background without blocking the page
+      console.log("📡 Step 2: Fetching reviews/ratings in background...");
+      
+      Promise.all([
+        reviewService.getProductReviews(id),
+        reviewService.getAverageRating(id),
+      ])
+        .then(([reviewsRes, ratingRes]) => {
+          if (reviewsRes.success) {
+            console.log("✅ Reviews loaded in background");
+            setReviews(reviewsRes.data);
+          }
+          if (ratingRes.success) {
+            console.log("✅ Ratings loaded in background");
+            setAverageRating(ratingRes.data.averageRating);
+          }
+        })
+        .catch((err) => {
+          // If reviews timeout, we just log it. The user still sees the product!
+          console.warn("⚠️ Secondary data timed out or failed, but that's okay:", err);
+        });
 
-      if (ratingRes.success) {
-        setAverageRating(ratingRes.data.averageRating);
-      }
     } catch (error) {
-      console.error('Error fetching product details:', error);
+      console.error('🔥 Critical error fetching product:', error);
       toast.error('Failed to load product details');
-    } finally {
       setLoading(false);
     }
   };
@@ -68,9 +94,8 @@ const ProductDetailPage: React.FC = () => {
     }
 
     try {
-      // Use product ID as merchantProductId (convert to number using hash of productId)
-      const merchantProductId = product.id.charCodeAt(0) + quantity * 1000;
-      await addToCart(merchantProductId, quantity);
+      // Note: Using the ID string directly is safer than charCode math
+      await addToCart(product.id, quantity);
       toast.success(`${product.name} added to cart!`);
     } catch (error) {
       console.error('Error adding to cart:', error);
@@ -87,9 +112,7 @@ const ProductDetailPage: React.FC = () => {
     }
 
     try {
-      // Use product ID as merchantProductId (convert to number using hash of productId)
-      const merchantProductId = product.id.charCodeAt(0) + quantity * 1000;
-      await addToCart(merchantProductId, quantity);
+      await addToCart(product.id, quantity);
       toast.success(`${product.name} added to cart! Proceeding to checkout...`);
       navigate('/checkout');
     } catch (error) {
@@ -105,7 +128,7 @@ const ProductDetailPage: React.FC = () => {
   if (!product) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <p className="text-gray-600 text-xl">Product not found</p>
+        <p className="text-gray-600 text-xl text-center">Product not found</p>
       </div>
     );
   }
@@ -122,6 +145,7 @@ const ProductDetailPage: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
           <div className="flex items-center gap-4 mb-4">
+            {/* RatingStars will update automatically when averageRating state changes */}
             <RatingStars rating={averageRating} size="lg" />
             <span className="text-gray-600">({reviews.length} reviews)</span>
           </div>
@@ -133,19 +157,19 @@ const ProductDetailPage: React.FC = () => {
             <p className="text-gray-600">Category: <strong>{product.category}</strong></p>
           </div>
 
-          {/* Quantity and Add to Cart */}
+          {/* Quantity and Actions */}
           <div className="flex gap-4 mb-6">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="px-3 py-2 border border-gray-300 rounded"
+                className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100"
               >
                 -
               </button>
-              <span className="px-4">{quantity}</span>
+              <span className="px-4 font-medium">{quantity}</span>
               <button
                 onClick={() => setQuantity(quantity + 1)}
-                className="px-3 py-2 border border-gray-300 rounded"
+                className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-100"
               >
                 +
               </button>
@@ -153,14 +177,14 @@ const ProductDetailPage: React.FC = () => {
 
             <button
               onClick={handleAddToCart}
-              className="flex-1 bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700"
+              className="flex-1 bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
             >
               Add to Cart
             </button>
 
             <button
               onClick={handleBuyNow}
-              className="flex-1 bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-orange-700"
+              className="flex-1 bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-orange-700 transition-colors"
             >
               Buy Now
             </button>
@@ -168,7 +192,7 @@ const ProductDetailPage: React.FC = () => {
 
           {!isAuthenticated && (
             <p className="text-sm text-gray-600">
-              Please <a href="/login" className="text-blue-600 hover:underline">login</a> to add items to cart
+              Please <button onClick={() => navigate('/login')} className="text-blue-600 hover:underline">login</button> to add items to cart
             </p>
           )}
         </div>
@@ -184,6 +208,7 @@ const ProductDetailPage: React.FC = () => {
           </div>
         )}
 
+        {/* This will start empty and populate once the background fetch finishes */}
         <ReviewList reviews={reviews} />
       </div>
     </div>

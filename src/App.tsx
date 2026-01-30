@@ -57,7 +57,7 @@ const App: React.FC = () => {
                 {/* Public Routes */}
                 <Route path="/" element={<HomePage />} />
                 <Route path="/products" element={<ProductListPage />} />
-                <Route path="/products/:productId" element={<ProductDetailPage />} />
+                <Route path="/products/:id" element={<ProductDetailPage />} />
                 <Route path="/search" element={<SearchResultsPage />} />
                 
                 {/* Auth Routes */}
