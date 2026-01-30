@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -30,6 +30,7 @@ import EditProductPage from './pages/merchant/EditProductPage';
 import InventoryPage from './pages/merchant/InventoryPage';
 import MerchantOrdersPage from './pages/merchant/MerchantOrdersPage';
 import MerchantProfilePage from './pages/merchant/MerchantProfilePage';
+import MerchantLayout from './components/merchant/MerchantLayout';
 
 // Auth Pages
 import LoginPage from './pages/auth/LoginPage';
@@ -121,61 +122,24 @@ const App: React.FC = () => {
                 
                 {/* Merchant Protected Routes */}
                 <Route
-                  path="/merchant/dashboard"
+                  path="/merchant"
                   element={
                     <ProtectedRoute requiredRole="MERCHANT">
-                      <MerchantDashboardPage />
+                      <MerchantLayout />
                     </ProtectedRoute>
                   }
-                />
-                <Route
-                  path="/merchant/products"
-                  element={
-                    <ProtectedRoute requiredRole="MERCHANT">
-                      <ProductManagementPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/merchant/add-product"
-                  element={
-                    <ProtectedRoute requiredRole="MERCHANT">
-                      <AddProductPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/merchant/products/:productId/edit"
-                  element={
-                    <ProtectedRoute requiredRole="MERCHANT">
-                      <EditProductPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/merchant/inventory"
-                  element={
-                    <ProtectedRoute requiredRole="MERCHANT">
-                      <InventoryPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/merchant/orders"
-                  element={
-                    <ProtectedRoute requiredRole="MERCHANT">
-                      <MerchantOrdersPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/merchant/profile"
-                  element={
-                    <ProtectedRoute requiredRole="MERCHANT">
-                      <MerchantProfilePage />
-                    </ProtectedRoute>
-                  }
-                />
+                >
+                  {/* Default redirect: Login -> /merchant -> /merchant/products */}
+                  <Route index element={<Navigate to="/merchant/products" replace />} />
+                  
+                  <Route path="products" element={<ProductManagementPage />} />
+                  <Route path="add-product" element={<AddProductPage />} />
+                  <Route path="products/:productId/edit" element={<EditProductPage />} />
+                  <Route path="inventory" element={<InventoryPage />} />
+                  <Route path="orders" element={<MerchantOrdersPage />} />
+                  <Route path="dashboard" element={<MerchantDashboardPage />} />
+                  <Route path="profile" element={<MerchantProfilePage />} />
+                </Route>
                 
                 {/* 404 */}
                 <Route path="*" element={<NotFoundPage />} />
