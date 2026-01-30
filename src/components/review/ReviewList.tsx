@@ -13,11 +13,15 @@ const ReviewList: React.FC<ReviewListProps> = ({ reviews, onReviewDeleted }) => 
   const handleDeleteReview = async (reviewId: number) => {
     if (window.confirm('Are you sure you want to delete this review?')) {
       try {
+        console.log("🗑️ [ReviewList] Deleting review:", reviewId);
         await reviewService.deleteReview(reviewId);
+        console.log("✅ [ReviewList] Review deleted successfully");
         toast.success('Review deleted successfully!');
         onReviewDeleted?.();
-      } catch (error) {
-        toast.error('Failed to delete review');
+      } catch (error: any) {
+        console.error("❌ [ReviewList] Failed to delete review:", error);
+        const errorMessage = error.response?.data?.message || 'Failed to delete review';
+        toast.error(errorMessage);
       }
     }
   };
