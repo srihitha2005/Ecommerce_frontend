@@ -1,3 +1,44 @@
+/**
+ * ============================================================================
+ * ORDER SERVICE - Cart & Checkout Operations
+ * ============================================================================
+ * 
+ * PURPOSE:
+ * - Manages shopping cart operations (add, remove, update items)
+ * - Manages checkout and order retrieval
+ * - Syncs cart with backend database
+ * 
+ * KEY ENDPOINTS:
+ * 
+ * CUSTOMER CART OPERATIONS:
+ * - GET /cart → Get current user's cart
+ * - POST /cart/add → Add item to cart
+ * - DELETE /cart/remove/:id → Remove item from cart
+ * - PUT /cart/update → Update item quantity
+ * - DELETE /cart/clear → Clear entire cart
+ * - POST /orders/checkout → Complete purchase
+ * 
+ * CUSTOMER ORDER RETRIEVAL:
+ * - GET /orders/history → Get all customer orders
+ * - GET /orders/:id → Get specific order details
+ * 
+ * MERCHANT ORDER MANAGEMENT:
+ * - GET /merchant/orders → Get orders for merchant's products
+ * - PUT /orders/:id/status → Update order status
+ * 
+ * ARCHITECTURE:
+ * - Uses axios POST/PUT/DELETE/GET methods
+ * - Automatically includes JWT token via axios interceptor
+ * - All responses follow: { success, message, data: T }
+ * 
+ * ERROR HANDLING:
+ * - 403 Forbidden: Token rejected (JWT secret mismatch) ⚠️ BLOCKING
+ * - 404 Not Found: Cart/order doesn't exist
+ * - 500 Internal Server Error: Backend error
+ * 
+ * ============================================================================
+ */
+
 import { orderAPI } from './axios.config';
 import { AddToCartRequest, CartResponse, CheckoutResponse } from '../types/cart.types';
 import { OrderHistoryResponse, OrderDetailResponse } from '../types/order.types';
@@ -5,12 +46,34 @@ import { OrderHistoryResponse, OrderDetailResponse } from '../types/order.types'
 console.log("📂 [OrderAPI] Loaded.");
 
 export const orderService = {
-  /** * ASYNC & PROMISES:
- * 1. Purpose: Prevents the UI from freezing during long-running network requests.
- * 2. States: Starts as 'Pending', then becomes 'Fulfilled' (Success) or 'Rejected' (Error).
- * 3. Type Safety: Promise<CartResponse> ensures we always know the "shape" 
- * of the data that arrives once the request finishes.
- */
+  /**
+   * ASYNC & PROMISES (Revision Note):
+   * 
+   * 1. PURPOSE:
+   *    - Prevents UI from freezing during network requests
+   *    - JavaScript runs code line-by-line
+   *    - Without async/await, app waits for network response
+   *    - With async/await, app continues rendering while waiting
+   * 
+   * 2. STATES:
+   *    - Pending: Request in progress
+   *    - Fulfilled: Success response received
+   *    - Rejected: Error response received
+   * 
+   * 3. TYPE SAFETY - Promise<CartResponse>:
+   *    - Tells TypeScript what type of data we'll get back
+   *    - Prevents passing wrong data to components
+   *    - Enables autocomplete (response.success, response.data)
+   * 
+   * 4. EXAMPLE USAGE:
+   *    try {
+   *      const response = await orderService.getCart();
+   *      // response is guaranteed to be CartResponse type
+   *      console.log(response.data);
+   *    } catch (error) {
+   *      // Error while waiting for promise
+   *    }
+   */
 
   getCart: async (): Promise<CartResponse> => {
     console.log('📡 [OrderAPI] GET /cart');

@@ -1,3 +1,60 @@
+/**
+ * ============================================================================
+ * PRODUCT DETAIL PAGE - Single Product View with Reviews & Add to Cart
+ * ============================================================================
+ * 
+ * PURPOSE:
+ * - Displays complete product information
+ * - Shows product images, description, specifications
+ * - Displays customer reviews and rating
+ * - Allows customers to add item to cart or buy now
+ * - Handles review form for authenticated customers
+ * 
+ * LAYOUT:
+ * ┌─────────────────────────────────────┐
+ * │   Image Gallery    │   Product Info  │
+ * │   (Left)          │   (Right)       │
+ * │                   │                 │
+ * │   Thumbnail       │   - Name        │
+ * │   Gallery         │   - Rating      │
+ * │                   │   - Price       │
+ * │                   │   - Add to Cart │
+ * │                   │   - Buy Now     │
+ * └─────────────────────────────────────┘
+ * ┌──────────────────────────────────────┐
+ * │         Reviews Section              │
+ * │  - Review Form (if customer logged)  │
+ * │  - Review List (sorted by newest)    │
+ * │  - Average rating calculated         │
+ * └──────────────────────────────────────┘
+ * 
+ * BACKGROUND LOADING (Revision Note):
+ * 
+ * WHY TWO PHASE LOADING:
+ * - Product data is critical (show it immediately)
+ * - Reviews are secondary (user can see product while loading)
+ * - Prevents white screen waiting for all data
+ * 
+ * IMPLEMENTATION:
+ * Phase 1: await productService.getProductById()
+ *   - Block until product loads
+ *   - setLoading(false) → display product
+ *   - User sees product immediately
+ * 
+ * Phase 2: reviewService.getProductReviews() (no await)
+ *   - Fetch in background (fire and forget)
+ *   - Calculate average rating when complete
+ *   - Update review list on screen
+ *   - If fails, user still sees product
+ * 
+ * MERCHANT PRODUCT ID (Revision Note):
+ * - Product has two IDs: id and productId
+ * - Use: product.productId ?? product.id for cart operations
+ * - Backend inventory expects merchantProductId (not productId)
+ * 
+ * ============================================================================
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ProductImageGallery from '../../components/product/ProductImageGallery';

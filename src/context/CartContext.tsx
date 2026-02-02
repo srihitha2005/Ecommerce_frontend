@@ -1,16 +1,92 @@
+/**
+ * ============================================================================
+ * CART CONTEXT - Shopping Cart State Management
+ * ============================================================================
+ * 
+ * PURPOSE:
+ * - Manages customer's shopping cart (add, remove, update, checkout)
+ * - Syncs cart state with backend API
+ * - Provides cart data and operations to all components
+ * 
+ * KEY RESPONSIBILITIES:
+ * 1. Fetch current cart from backend when user logs in
+ * 2. Add/remove items from cart
+ * 3. Update item quantities
+ * 4. Clear entire cart
+ * 5. Provide item count for badge in header
+ * 
+ * CART ITEM STRUCTURE:
+ * {
+ *   merchantProductId: string,      // ID for the specific inventory entry
+ *   quantity: number,
+ *   price: string,
+ *   subTotal: string,
+ *   product?: { name, imageUrls, brand }
+ * }
+ * 
+ * FLOW:
+ * Customer logs in (isCustomer = true)
+ *    ↓
+ * CartContext auto-fetches cart from backend
+ *    ↓
+ * Cart items displayed in header badge + cart page
+ *    ↓
+ * User clicks "Add to Cart" → CartContext.addToCart()
+ *    ↓
+ * POST /cart/add sent, cart refetched from backend
+ *    ↓
+ * UI updates with new item count and toast notification
+ * 
+ * ============================================================================
+ */
+
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { orderService } from '../api/order.api';
 import { Cart, CartContextType } from '../types/cart.types';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from 'react-toastify';
 
+/**
+ * REACT CONTEXT CREATION:
+ * - Provides cart data and functions to entire app
+ * - Prevents prop drilling (no need to pass cart through every component)
+ */
 export const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  /**
+   * STATE VARIABLES:
+   * - cart: Cart | null → Current user's cart with items array
+   * - loading: boolean → True while fetching/updating from API
+   * 
+   * WHY SEPARATE STATE:
+   * - Cart needs to sync with backend, not just local state
+   * - Multiple components may trigger cart updates (product page, cart page)
+   * - Loading flag prevents race conditions with concurrent API calls
+   */
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(false);
   const { isAuthenticated, isCustomer } = useAuth();
 
+  /**
+   * EFFECT: AUTO-FETCH CART ON LOGIN/LOGOUT
+   * 
+   * WHY THIS MATTERS:
+   * - When user logs in, we need to fetch their existing cart from backend
+   * - When user logs out, we need to clear the cart
+   * - Cart is role-specific (only customers have carts)
+   * 
+   * DEPENDENCY ARRAY: [isAuthenticated, isCustomer]
+   * - Triggers when auth status changes
+   * - Triggers when role changes (important if user switches roles)
+   * 
+   * FLOW:
+   * 1. User logs in (isAuthenticated becomes true, isCustomer becomes true)
+   * 2. Effect runs, calls fetchCart()
+   * 3. Cart API fetches user's items from backend
+   * 4. setCart() updates local state
+   * 5. Header badge updates with item count
+   */
   useEffect(() => {
     console.log(`🔄 [CartContext] Auth Trigger: Auth=${isAuthenticated}, Cust=${isCustomer}`);
     if (isAuthenticated && isCustomer) {
@@ -20,6 +96,18 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [isAuthenticated, isCustomer]);
 
+  /**
+   * FETCH CART FROM BACKEND
+   * 
+   * WHY TRY/CATCH:
+   * - Network errors (timeout, 500s) should not crash the app
+   * - 404/403 errors are non-critical (user might have no cart)
+   * - We log but don't toast error for 404/403 (expected behaviors)
+   * 
+   * CONSOLE GROUPING:
+   * - console.group() organizes logs together for easier debugging
+   * - Helps trace the full lifecycle of cart operations
+   */
   const fetchCart = async () => {
     console.group("📡 [CartContext] Fetching Cart Data");
     try {

@@ -1,23 +1,11 @@
 import React from 'react';
-import { Order } from '../../types/order.types';
-import SalesChart from './SalesChart';
 
-interface MerchantDashboardProps {
-  orders: Order[];
-  onOrdersRefresh?: () => void;
-}
+interface MerchantDashboardProps {}
 
-const MerchantDashboard: React.FC<MerchantDashboardProps> = ({ orders, onOrdersRefresh }) => {
-  const totalOrders = orders.length;
-  const totalRevenue = orders.reduce((sum, order) => sum + parseFloat(order.totalAmount), 0);
-  const deliveredOrders = orders.filter(o => o.status === 'DELIVERED').length;
-  const pendingOrders = orders.filter(o => o.status === 'PENDING' || o.status === 'CONFIRMED').length;
-
+const MerchantDashboard: React.FC<MerchantDashboardProps> = () => {
   const stats = [
-    { label: 'Total Orders', value: totalOrders, color: 'blue' },
-    { label: 'Pending', value: pendingOrders, color: 'yellow' },
-    { label: 'Delivered', value: deliveredOrders, color: 'green' },
-    { label: 'Total Revenue', value: `$${totalRevenue.toFixed(2)}`, color: 'purple' },
+    { label: 'Inventory', value: 'Manage Stock', color: 'blue' },
+    { label: 'Products', value: 'View All', color: 'green' },
   ];
 
   const getColorClass = (color: string) => {
@@ -42,45 +30,12 @@ const MerchantDashboard: React.FC<MerchantDashboardProps> = ({ orders, onOrdersR
         ))}
       </div>
 
-      {/* Sales Chart */}
+      {/* Inventory Management Info */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-bold mb-4">Sales Overview</h2>
-        <SalesChart orders={orders} />
-      </div>
-
-      {/* Recent Orders */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-bold mb-4">Recent Orders</h2>
-        {orders.length === 0 ? (
-          <p className="text-gray-600 text-center py-8">No orders yet</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-b">
-                <tr>
-                  <th className="text-left py-2">Order ID</th>
-                  <th className="text-left py-2">Amount</th>
-                  <th className="text-left py-2">Status</th>
-                  <th className="text-left py-2">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.slice(0, 5).map(order => (
-                  <tr key={order.orderId} className="border-b hover:bg-gray-50">
-                    <td className="py-2">#{order.orderId}</td>
-                    <td className="py-2">${parseFloat(order.totalAmount).toFixed(2)}</td>
-                    <td className="py-2">
-                      <span className="px-2 py-1 rounded text-sm bg-blue-100 text-blue-800">
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="py-2">{new Date(order.orderDate).toLocaleDateString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <h2 className="text-xl font-bold mb-4">Inventory Management</h2>
+        <p className="text-gray-600">
+          Manage your product inventory and stock levels from the Inventory Manager.
+        </p>
       </div>
     </div>
   );

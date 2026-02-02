@@ -1,3 +1,61 @@
+/**
+ * ============================================================================
+ * HEADER COMPONENT - Top Navigation Bar
+ * ============================================================================
+ * 
+ * PURPOSE:
+ * - Main navigation header visible on all pages
+ * - Logo, search bar, user account menu
+ * - Shows cart icon (customers only)
+ * - Sticky positioning (stays at top when scrolling)
+ * 
+ * LAYOUT:
+ * ┌────────────────────────────────────────┐
+ * │ Logo │  Search Bar (Desktop)  │ User Actions │
+ * └────────────────────────────────────────┘
+ * 
+ * HEADER SECTIONS:
+ * 1. LOGO:
+ *    - Merchant: Clicks → /merchant/dashboard
+ *    - Customer: Clicks → /
+ *    - Prevents accidental navigation away for merchants
+ * 
+ * 2. SEARCH BAR (Desktop):
+ *    - Input field with magnifying glass icon
+ *    - On submit: navigate to /search?q=...
+ *    - Mobile: Separate search bar below header
+ * 
+ * 3. USER ACTIONS (Right side):
+ *    - UNAUTHENTICATED: "Login" button
+ *    - AUTHENTICATED:
+ *      * User avatar + name
+ *      * Dropdown menu with:
+ *        - My Profile (customer) / Dashboard (merchant)
+ *        - My Orders (customer only, hidden for merchants)
+ *        - Logout
+ *      * Cart icon (customer only)
+ *        - Shows item count badge
+ *        - Hidden for merchants
+ * 
+ * RESPONSIVE BEHAVIOR:
+ * - Desktop (md+): Full search bar, full menu
+ * - Mobile: Hamburger menu, search bar below header
+ * 
+ * MERCHANT-SPECIFIC BEHAVIOR:
+ * - Logo routes to /merchant/dashboard
+ * - Cart icon hidden
+ * - "My Orders" menu item hidden
+ * - "My Profile" → Dashboard instead
+ * 
+ * CONDITIONAL RENDERING (Revision Note):
+ * - !isMerchant && <CartIcon /> → Show cart only for customers
+ * - Uses logical AND (&&) for simple show/hide
+ * - Alternative: <>{isMerchant ? null : <CartIcon />}</>
+ * - First approach is cleaner when hiding, not replacing
+ * 
+ * ============================================================================
+ */
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';

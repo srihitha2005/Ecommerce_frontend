@@ -20,6 +20,9 @@ export interface ProductFormData {
   brand: string;
   imageUrls: string[];
   attributes: Record<string, string>;
+  // Optional initial inventory fields collected on product creation
+  initialQuantity?: number;
+  initialPrice?: number;
 }
 
 export interface ProductFilters {

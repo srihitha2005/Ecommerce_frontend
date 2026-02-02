@@ -34,16 +34,6 @@ const Sidebar: React.FC = () => {
       path: '/merchant/add-product',
     },
     {
-      label: 'Inventory',
-      icon: ClipboardIcon,
-      path: '/merchant/inventory',
-    },
-    {
-      label: 'Orders',
-      icon: ClipboardIcon,
-      path: '/merchant/orders',
-    },
-    {
       label: 'Settings',
       icon: Cog6ToothIcon,
       path: '/merchant/profile',
