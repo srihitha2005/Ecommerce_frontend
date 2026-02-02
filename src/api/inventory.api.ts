@@ -10,7 +10,10 @@ export const inventoryService = {
   addInventory: async (data: InventoryFormData): Promise<InventoryResponse> => {
     console.log('📡 [InventoryAPI] POST /inventory payload:', data);
     try {
-      const response = await inventoryAPI.post('/inventory', data);
+      // Use the full inventory URL to avoid baseURL/path mismatches
+      const base = process.env.REACT_APP_INVENTORY_SERVICE_URL || '';
+      const url = `${base.replace(/\/+$/, '')}/inventory`;
+      const response = await inventoryAPI.post(url, data);
       console.log('📥 [InventoryAPI] POST /inventory response:', response.data);
       return response.data;
     } catch (err) {
@@ -19,18 +22,8 @@ export const inventoryService = {
     }
   },
 
-  // Update inventory item (Merchant only)
-  updateInventory: async (inventoryId: number, data: Partial<InventoryFormData>): Promise<InventoryResponse> => {
-    console.log(`📡 [InventoryAPI] PUT /inventory/${inventoryId} payload:`, data);
-    try {
-      const response = await inventoryAPI.put(`/inventory/${inventoryId}`, data);
-      console.log('📥 [InventoryAPI] PUT /inventory response:', response.data);
-      return response.data;
-    } catch (err) {
-      console.error('❌ [InventoryAPI] PUT /inventory error:', err);
-      throw err;
-    }
-  },
+  // NOTE: updateInventory removed — inventory management UI consolidated with product pages
+  // updateInventory removed as requested — merchants manage stock via Products page
 
   // Get merchant's inventory
   getMerchantInventory: async (merchantId: number): Promise<InventoryResponse> => {
@@ -61,28 +54,22 @@ export const inventoryService = {
   },
 
   // Get current merchant's listings (authenticated)
-  getMyListings: async (): Promise<MerchantProductsResponse> => {
-    console.log('📡 [InventoryAPI] GET /my-listings');
+  getMyListings: async (): Promise<InventoryResponse> => {
+    console.log('📡 [InventoryAPI] GET /inventory/my-listings');
     try {
-      const response = await inventoryAPI.get('/my-listings');
-      console.log('📥 [InventoryAPI] GET /my-listings response:', response.data);
+      const response = await inventoryAPI.get('/inventory/my-listings');
+      console.log('📥 [InventoryAPI] GET /inventory/my-listings response:', response.data);
       return response.data;
     } catch (err) {
-      console.error('❌ [InventoryAPI] GET /my-listings error:', err);
+      console.error('❌ [InventoryAPI] GET /inventory/my-listings error:', err);
       throw err;
     }
   },
 
-  // Delete inventory item (Merchant only)
-  deleteInventory: async (inventoryId: number): Promise<void> => {
-    console.log(`📡 [InventoryAPI] DELETE /inventory/${inventoryId}`);
-    try {
-      await inventoryAPI.delete(`/inventory/${inventoryId}`);
-      console.log('📥 [InventoryAPI] DELETE /inventory success');
-    } catch (err) {
-      console.error('❌ [InventoryAPI] DELETE /inventory error:', err);
-      throw err;
-    }
+  // NOTE: deleteInventory removed — deletion is disabled per merchant UX decision
+  deleteInventory: async (_inventoryId: number): Promise<void> => {
+    console.warn('⚠️ [InventoryAPI] deleteInventory is disabled in the frontend API (merchant deletion removed).');
+    return Promise.reject(new Error('deleteInventory disabled'));
   },
 
   // Get inventory by product

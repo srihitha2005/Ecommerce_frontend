@@ -1,6 +1,46 @@
 import { orderAPI } from "./axios.config";
 import { Cart, AddToCartRequest } from "../types/cart.types";
 import { Order } from "../types/order.types";
+/**
+ * ============================================================================
+ * ORDER SERVICE - Cart & Checkout Operations
+ * ============================================================================
+ * 
+ * PURPOSE:
+ * - Manages shopping cart operations (add, remove, update items)
+ * - Manages checkout and order retrieval
+ * - Syncs cart with backend database
+ * 
+ * KEY ENDPOINTS:
+ * 
+ * CUSTOMER CART OPERATIONS:
+ * - GET /cart → Get current user's cart
+ * - POST /cart/add → Add item to cart
+ * - DELETE /cart/remove/:id → Remove item from cart
+ * - PUT /cart/update → Update item quantity
+ * - DELETE /cart/clear → Clear entire cart
+ * - POST /orders/checkout → Complete purchase
+ * 
+ * CUSTOMER ORDER RETRIEVAL:
+ * - GET /orders/history → Get all customer orders
+ * - GET /orders/:id → Get specific order details
+ * 
+ * MERCHANT ORDER MANAGEMENT:
+ * - GET /merchant/orders → Get orders for merchant's products
+ * - PUT /orders/:id/status → Update order status
+ * 
+ * ARCHITECTURE:
+ * - Uses axios POST/PUT/DELETE/GET methods
+ * - Automatically includes JWT token via axios interceptor
+ * - All responses follow: { success, message, data: T }
+ * 
+ * ERROR HANDLING:
+ * - 403 Forbidden: Token rejected (JWT secret mismatch) ⚠️ BLOCKING
+ * - 404 Not Found: Cart/order doesn't exist
+ * - 500 Internal Server Error: Backend error
+ * 
+ * ============================================================================
+ */
 
 // ✅ DEFINED LOCALLY TO GUARANTEE TYPESCRIPT SEES IT
 export interface ApiResponse<T = any> {

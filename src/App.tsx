@@ -26,9 +26,6 @@ import SearchResultsPage from './pages/customer/SearchResultsPage';
 import MerchantDashboardPage from './pages/merchant/MerchantDashboardPage';
 import ProductManagementPage from './pages/merchant/ProductManagementPage';
 import AddProductPage from './pages/merchant/AddProductPage';
-import EditProductPage from './pages/merchant/EditProductPage';
-import InventoryPage from './pages/merchant/InventoryPage';
-import MerchantOrdersPage from './pages/merchant/MerchantOrdersPage';
 import MerchantProfilePage from './pages/merchant/MerchantProfilePage';
 import MerchantLayout from './components/merchant/MerchantLayout';
 
@@ -134,9 +131,7 @@ const App: React.FC = () => {
                   
                   <Route path="products" element={<ProductManagementPage />} />
                   <Route path="add-product" element={<AddProductPage />} />
-                  <Route path="products/:productId/edit" element={<EditProductPage />} />
-                  <Route path="inventory" element={<InventoryPage />} />
-                  <Route path="orders" element={<MerchantOrdersPage />} />
+                  {/* Edit route removed — editing disabled in merchant UI */}
                   <Route path="dashboard" element={<MerchantDashboardPage />} />
                   <Route path="profile" element={<MerchantProfilePage />} />
                 </Route>

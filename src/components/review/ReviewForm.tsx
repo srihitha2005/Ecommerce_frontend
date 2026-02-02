@@ -1,3 +1,64 @@
+/**
+ * ============================================================================
+ * REVIEW FORM COMPONENT - Customer Product Review Submission
+ * ============================================================================
+ * 
+ * PURPOSE:
+ * - Allows authenticated customers to submit product reviews
+ * - Collects rating (1-5 stars) and written comment
+ * - Enforces one review per customer per product
+ * - Prevents accidental auto-submission when clicking stars
+ * 
+ * KEY FEATURES:
+ * 1. STAR RATING INPUT:
+ *    - 5 clickable stars for rating (1-5)
+ *    - Visual feedback on hover and selection
+ *    - Prevents auto-submit on star click (requires comment too)
+ * 
+ * 2. COMMENT TEXTAREA:
+ *    - Required for form submission
+ *    - Prevents empty/spam reviews
+ * 
+ * 3. ONE REVIEW PER USER:
+ *    - Checks if user already reviewed this product
+ *    - Props.reviews array includes user's own reviews
+ *    - If user found in reviews, hide form and show "Already reviewed"
+ * 
+ * 4. FORM VALIDATION:
+ *    - Rating required (0 = invalid)
+ *    - Comment required (cannot be empty/whitespace)
+ *    - Both validated before API call
+ * 
+ * FLOW:
+ * 1. Component mounts, check if user already reviewed
+ * 2. If yes: Show "You already reviewed this product"
+ * 3. If no: Show star rating input + comment textarea
+ * 4. User clicks submit:
+ *    - Validate rating and comment
+ *    - Call reviewService.postReview()
+ *    - Refresh parent component (ProductDetailPage)
+ *    - Form clears, shows success message
+ * 
+ * PREVENT ACCIDENTAL SUBMIT (Revision Note):
+ * 
+ * PROBLEM:
+ * - Old implementation: onClick star → auto-submit form
+ * - User clicks "4 stars" → immediately posts empty comment
+ * 
+ * SOLUTION:
+ * - Clicking stars only updates rating state
+ * - Does NOT trigger form submission
+ * - User must explicitly click "Submit" button
+ * - Click happens only if both rating && comment are filled
+ * 
+ * IMPLEMENTATION:
+ * - Star onClick: setRating(value) only
+ * - Button onClick: handleSubmit() (with validation)
+ * - Button disabled if loading or already reviewed
+ * 
+ * ============================================================================
+ */
+
 import React, { useState, useEffect } from 'react';
 import { reviewService } from '../../api/review.api';
 import { ReviewFormData, Review } from '../../types/review.types';

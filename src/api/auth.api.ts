@@ -1,3 +1,36 @@
+/**
+ * ============================================================================
+ * AUTH SERVICE - Authentication & User Registration
+ * ============================================================================
+ * 
+ * PURPOSE:
+ * - Handles login, logout, and registration (customer & merchant)
+ * - Extracts and normalizes backend auth responses
+ * - Manages user role-based profile data (MerchantProfile vs CustomerProfile)
+ * 
+ * KEY ENDPOINTS:
+ * - POST /login → Authenticate user, return JWT token
+ * - POST /register/customer → Create customer account
+ * - POST /register/merchant → Create merchant account
+ * - POST /logout → Clear session (if needed)
+ * 
+ * RESPONSE NORMALIZATION:
+ * The backend may wrap responses in different formats:
+ * - { success: true, data: { ... } }
+ * - { data: { user: {...}, token: "..." } }
+ * - { user: {...}, token: "...", sub: email }
+ * 
+ * extractAuthResponse() handles all variations and normalizes to:
+ * { token, user, merchantProfile, customerProfile }
+ * 
+ * ASYNC/PROMISES (Revision Note):
+ * - All methods are async to handle network requests
+ * - Promise<AuthResponse> type ensures type-safe responses
+ * - Components use: await authService.login(...) then .catch(error)
+ * 
+ * ============================================================================
+ */
+
 /** * CHOOSING AXIOS OVER FETCH:
  * 1. GLOBAL CONFIG: One place to set 'withCredentials' and Base URLs.
  * 2. REQUEST INTERCEPTORS: No more copy-pasting the JWT Token in every API call.
@@ -15,7 +48,8 @@
  * LOCATION: In /api because it handles external network communication logic only.
  */
 
-import { authAPI } from "./axios.config";
+ import { authAPI } from './axios.config';
+import { inspectToken } from '../utils/jwtDecoder';
 import {
   LoginRequest,
   RegisterCustomerRequest,
@@ -27,7 +61,8 @@ export const authService = {
   // Helper to extract auth response from backend wrapper and normalize field names
   extractAuthResponse: (response: any): AuthResponse => {
     let authData = response;
-
+    console.log("🔍 [AuthAPI] Raw Response:", response);
+    
     // 1. Unwrap common API wrappers (data.data or data.success)
     if (response.data && typeof response.data === "object") {
       // Handle { success: true, data: { ... } }
@@ -38,7 +73,9 @@ export const authService = {
         authData = response.data;
       }
     }
-
+    
+    console.log("📦 [AuthAPI] Extracted authData:", authData);
+    
     // 2. Validate Token
     if (!authData.token) {
       console.error("❌ Full Response Data:", authData);
@@ -94,6 +131,13 @@ export const authService = {
       }
     }
 
+    
+    console.log("✅ [AuthAPI] Normalized User:", normalizedUser);
+    
+    // 🔍 INSPECTION: Decode and verify the token
+    console.log("\n🔍 [AuthAPI] Token Verification:");
+    inspectToken(authData.token);
+    
     return {
       token: authData.token,
       user: normalizedUser,

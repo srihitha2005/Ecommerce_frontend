@@ -1,3 +1,39 @@
+/**
+ * ============================================================================
+ * LOGIN PAGE - User Authentication Entry Point
+ * ============================================================================
+ * 
+ * PURPOSE:
+ * - Main login page for all users (customers and merchants)
+ * - Collects email, password, and optional role
+ * - Validates input before submitting to auth service
+ * - Redirects to appropriate dashboard after successful login
+ * 
+ * FLOW:
+ * 1. User enters email and password
+ * 2. Form validation (email format, password not empty)
+ * 3. Click "Sign in" → handleSubmit()
+ * 4. Calls authContext.login(email, password)
+ * 5. Backend returns JWT token + user data
+ * 6. Token stored in localStorage
+ * 7. axios interceptor uses token for future requests
+ * 8. Redirect: merchant → /merchant/dashboard | customer → /
+ * 
+ * ROLE DETECTION (Revision Note):
+ * - User role is determined by backend during login
+ * - Based on which email/password combination was used
+ * - Frontend checks user.role from AuthContext to redirect
+ * - Optional role parameter in login request (if backend supports it)
+ * 
+ * ERROR HANDLING:
+ * - Email validation using isValidEmail() utility
+ * - Password required (no validation, allow any string)
+ * - Network errors show toast notification
+ * - Validation errors shown inline above input fields
+ * 
+ * ============================================================================
+ */
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';

@@ -1,20 +1,46 @@
+/** CartContext: manages add/remove/update/checkout and syncs with backend */
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import { orderService } from "../api/order.api";
 import { Cart, CartContextType } from "../types/cart.types";
 import { useAuth } from "../hooks/useAuth";
 import { toast } from "react-toastify";
 
-export const CartContext = createContext<CartContextType | undefined>(
-  undefined,
-);
+export const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export const CartProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
+export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  /**
+   * STATE VARIABLES:
+   * - cart: Cart | null → Current user's cart with items array
+   * - loading: boolean → True while fetching/updating from API
+   * 
+   * WHY SEPARATE STATE:
+   * - Cart needs to sync with backend, not just local state
+   * - Multiple components may trigger cart updates (product page, cart page)
+   * - Loading flag prevents race conditions with concurrent API calls
+  */
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(false);
   const { isAuthenticated, isCustomer } = useAuth();
 
+  /**
+   * EFFECT: AUTO-FETCH CART ON LOGIN/LOGOUT
+   * 
+   * WHY THIS MATTERS:
+   * - When user logs in, we need to fetch their existing cart from backend
+   * - When user logs out, we need to clear the cart
+   * - Cart is role-specific (only customers have carts)
+   * 
+   * DEPENDENCY ARRAY: [isAuthenticated, isCustomer]
+   * - Triggers when auth status changes
+   * - Triggers when role changes (important if user switches roles)
+   * 
+   * FLOW:
+   * 1. User logs in (isAuthenticated becomes true, isCustomer becomes true)
+   * 2. Effect runs, calls fetchCart()
+   * 3. Cart API fetches user's items from backend
+   * 4. setCart() updates local state
+   * 5. Header badge updates with item count
+   */
   useEffect(() => {
     if (isAuthenticated && isCustomer) {
       fetchCart();
@@ -23,6 +49,18 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [isAuthenticated, isCustomer]);
 
+  /**
+   * FETCH CART FROM BACKEND
+   * 
+   * WHY TRY/CATCH:
+   * - Network errors (timeout, 500s) should not crash the app
+   * - 404/403 errors are non-critical (user might have no cart)
+   * - We log but don't toast error for 404/403 (expected behaviors)
+   * 
+   * CONSOLE GROUPING:
+   * - console.group() organizes logs together for easier debugging
+   * - Helps trace the full lifecycle of cart operations
+   */
   const fetchCart = async () => {
     try {
       setLoading(true);

@@ -32,22 +32,7 @@ const MerchantLayout: React.FC = () => {
                 >
                   Add Product
                 </NavLink>
-                <NavLink 
-                  to="/merchant/inventory"
-                  className={({ isActive }) => 
-                    `text-sm font-medium transition-colors ${isActive ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`
-                  }
-                >
-                  Update Inventory
-                </NavLink>
-                <NavLink 
-                  to="/merchant/orders"
-                  className={({ isActive }) => 
-                    `text-sm font-medium transition-colors ${isActive ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`
-                  }
-                >
-                  Orders
-                </NavLink>
+                {/* Inventory management removed — merchants use Products page */}
               </nav>
             </div>
             

@@ -1,3 +1,7 @@
+/**
+ * Product Detail Page - cleaned after merge
+ * Shows product, images, reviews and provides add-to-cart/buy-now actions
+ */
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ProductImageGallery from "../../components/product/ProductImageGallery";

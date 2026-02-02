@@ -1,3 +1,59 @@
+/**
+ * ============================================================================
+ * CART ITEM COMPONENT - Individual Shopping Cart Item Display
+ * ============================================================================
+ * 
+ * PURPOSE:
+ * - Displays a single item in the shopping cart
+ * - Shows product image, name, price, quantity
+ * - Allows quantity adjustment (+ and - buttons)
+ * - Allows item removal from cart
+ * - Shows subtotal for the item
+ * 
+ * ITEM STRUCTURE:
+ * {
+ *   merchantProductId: string,     // Unique inventory entry ID
+ *   quantity: number,              // How many in cart
+ *   price: string,                 // Unit price
+ *   subTotal: string,              // quantity × price
+ *   product?: {
+ *     name: string,
+ *     imageUrls: string[],
+ *     brand: string
+ *   }
+ * }
+ * 
+ * LAYOUT:
+ * ┌─────────────────────────────────────┐
+ * │  Image  │  Name     │  Price │ -1+ │
+ * │         │  Brand    │  Total │ Del │
+ * └─────────────────────────────────────┘
+ * 
+ * INTERACTIVE ELEMENTS:
+ * 1. QUANTITY CONTROLS:
+ *    - "-" button: Decrease quantity by 1
+ *    - Number display: Current quantity
+ *    - "+" button: Increase quantity by 1
+ *    - Min quantity: 1 (below 1 → delete item)
+ * 
+ * 2. DELETE BUTTON:
+ *    - Removes item from cart
+ *    - Calls CartContext.removeFromCart()
+ *    - Immediate removal (optimistic UI)
+ * 
+ * 3. PRODUCT LINK:
+ *    - Click product name/image → go to product detail
+ *    - Allows customer to view/buy more
+ * 
+ * FORMATTING (Revision Note):
+ * - price and subTotal come as strings from backend
+ * - Format with: parseFloat(price).toFixed(2)
+ * - Display with currency symbol: ₹ or $
+ * - Show in locale format for user's region
+ * 
+ * ============================================================================
+ */
+
 import React from 'react';
 import { CartItem as CartItemType } from '../../types/cart.types';
 import { TrashIcon } from '@heroicons/react/24/outline';

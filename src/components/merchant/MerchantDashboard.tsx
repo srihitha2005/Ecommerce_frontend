@@ -1,24 +1,23 @@
 import React from 'react';
-import { Order } from '../../types/order.types';
 import SalesChart from './SalesChart';
+import { Order } from '../../types/order.types';
 
 interface MerchantDashboardProps {
-  orders: Order[];
+  orders?: Order[];
   onOrdersRefresh?: () => void;
 }
 
-const MerchantDashboard: React.FC<MerchantDashboardProps> = ({ orders, onOrdersRefresh }) => {
-  const totalOrders = orders.length;
-  // FIXED: Used Number() instead of parseFloat() to handle both string/number types
-  const totalRevenue = orders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
-  const deliveredOrders = orders.filter(o => o.status === 'DELIVERED').length;
-  const pendingOrders = orders.filter(o => o.status === 'PENDING' || o.status === 'CONFIRMED').length;
-
+const MerchantDashboard: React.FC<MerchantDashboardProps> = ({ orders = [] }) => {
+  const hasOrders = Array.isArray(orders) && orders.length > 0;
+  const totalOrders = hasOrders ? orders.length : 0;
+  const totalRevenue = hasOrders
+    ? orders.reduce((sum, order) => sum + Number(order.totalAmount), 0)
+    : 0;
   const stats = [
-    { label: 'Total Orders', value: totalOrders, color: 'blue' },
-    { label: 'Pending', value: pendingOrders, color: 'yellow' },
-    { label: 'Delivered', value: deliveredOrders, color: 'green' },
-    { label: 'Total Revenue', value: `$${totalRevenue.toFixed(2)}`, color: 'purple' },
+    { label: 'Orders', value: totalOrders, color: 'blue' },
+    { label: 'Revenue', value: `$${totalRevenue.toFixed(2)}`, color: 'yellow' },
+    { label: 'Products', value: 'View All', color: 'green' },
+    { label: 'Listings', value: 'Manage', color: 'purple' },
   ];
 
   const getColorClass = (color: string) => {
@@ -43,18 +42,27 @@ const MerchantDashboard: React.FC<MerchantDashboardProps> = ({ orders, onOrdersR
         ))}
       </div>
 
-      {/* Sales Chart */}
+      {/* Inventory Management or Orders Summary */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-bold mb-4">Sales Overview</h2>
-        <SalesChart orders={orders} />
+        {hasOrders ? (
+          <>
+            <h2 className="text-xl font-bold mb-4">Sales Overview</h2>
+            <SalesChart orders={orders} />
+          </>
+        ) : (
+          <>
+            <h2 className="text-xl font-bold mb-4">Inventory Management</h2>
+            <p className="text-gray-600">
+              Manage your product inventory and stock levels from the Inventory Manager.
+            </p>
+          </>
+        )}
       </div>
 
-      {/* Recent Orders */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-bold mb-4">Recent Orders</h2>
-        {orders.length === 0 ? (
-          <p className="text-gray-600 text-center py-8">No orders yet</p>
-        ) : (
+      {/* Recent Orders (if any) */}
+      {hasOrders && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-bold mb-4">Recent Orders</h2>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="border-b">
@@ -69,7 +77,6 @@ const MerchantDashboard: React.FC<MerchantDashboardProps> = ({ orders, onOrdersR
                 {orders.slice(0, 5).map(order => (
                   <tr key={order.orderId} className="border-b hover:bg-gray-50">
                     <td className="py-2">#{order.orderId}</td>
-                    {/* FIXED: Used Number() */}
                     <td className="py-2">${Number(order.totalAmount).toFixed(2)}</td>
                     <td className="py-2">
                       <span className="px-2 py-1 rounded text-sm bg-blue-100 text-blue-800">
@@ -82,8 +89,8 @@ const MerchantDashboard: React.FC<MerchantDashboardProps> = ({ orders, onOrdersR
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

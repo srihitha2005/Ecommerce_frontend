@@ -61,9 +61,6 @@ const Navbar: React.FC = () => {
                 <Link to="/merchant/dashboard" className="text-gray-600 hover:text-gray-900">
                   Products
                 </Link>
-                <Link to="/merchant/orders" className="text-gray-600 hover:text-gray-900">
-                  Orders
-                </Link>
                 <div className="relative">
                   <button
                     onClick={() => setShowLogoutConfirm(true)}
@@ -164,12 +161,6 @@ const Navbar: React.FC = () => {
                   className="block px-3 py-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                 >
                   Products
-                </Link>
-                <Link
-                  to="/merchant/orders"
-                  className="block px-3 py-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                >
-                  Orders
                 </Link>
                 <button
                   onClick={handleLogout}

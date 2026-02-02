@@ -1,13 +1,64 @@
+/**
+ * ============================================================================
+ * PRODUCT MANAGEMENT PAGE - Merchant Product Listing & Management
+ * ============================================================================
+ * 
+ * PURPOSE:
+ * - Merchant view of their own products
+ * - Add, edit, delete products
+ * - View product status (in stock, out of stock)
+ * - Manage inventory from this page
+ * 
+ * KEY FEATURES:
+ * 1. MERCHANT LISTINGS:
+ *    - Fetch via inventoryService.getMyListings()
+ *    - Only shows current merchant's products
+ *    - Includes nested product details (name, category, brand)
+ *    - Shows inventory status (in stock/out of stock)
+ * 
+ * 2. QUICK ACTIONS:
+ *    - "Edit": Navigate to product edit page
+ *    - "Delete": Remove product (with confirmation)
+ *    - "Back to Dashboard": Return to main dashboard
+ *    - "Manage Inventory": Go to inventory management
+ *    - "+ Add New Product": Create new product
+ * 
+ * 3. EMPTY STATE:
+ *    - If no products, show "No products yet" message
+ *    - Quick link to add first product
+ * 
+ * MERCHANT PRODUCT STRUCTURE:
+ * {
+ *   merchantProductId: string,
+ *   product: {
+ *     productId: string,
+ *     name: string,
+ *     category: string,
+ *     brand: string,
+ *     ...
+ *   },
+ *   quantity: number,
+ *   price: number
+ * }
+ * 
+ * FLOW ON MOUNT:
+ * 1. Call inventoryService.getMyListings()
+ * 2. Returns MerchantProduct[] with nested product data
+ * 3. Display products in table format
+ * 4. On edit/delete, call appropriate service
+ * 
+ * ============================================================================
+ */
+
 import React, { useState, useEffect } from 'react';
-import { productService } from '../../api/product.api';
 import { inventoryService } from '../../api/inventory.api';
-import { MerchantProduct } from '../../types/inventory.types';
+import { InventoryItem } from '../../types/inventory.types';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
 const ProductManagementPage: React.FC = () => {
-  const [products, setProducts] = useState<MerchantProduct[]>([]);
+  const [products, setProducts] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -21,7 +72,10 @@ const ProductManagementPage: React.FC = () => {
       // Use merchant-specific listings
       const response = await inventoryService.getMyListings();
       if (response.success) {
-        setProducts(response.data);
+        // Normalize response.data to an array (API may return single item or array)
+        const data = response.data;
+        const items = Array.isArray(data) ? data : [data];
+        setProducts(items);
       } else {
         toast.error(response.message);
       }
@@ -33,17 +87,6 @@ const ProductManagementPage: React.FC = () => {
     }
   };
 
-  const handleDelete = async (productId: string) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      try {
-        await productService.deleteProduct(productId);
-        toast.success('Product deleted successfully');
-        fetchProducts();
-      } catch (error) {
-        toast.error('Failed to delete product');
-      }
-    }
-  };
 
   if (loading) return <LoadingSpinner />;
 
@@ -60,12 +103,6 @@ const ProductManagementPage: React.FC = () => {
             className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
           >
             Back to Dashboard
-          </button>
-          <button
-            onClick={() => navigate('/merchant/inventory')}
-            className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors"
-          >
-            Manage Inventory
           </button>
           <button
             onClick={() => navigate('/merchant/add-product')}
@@ -91,41 +128,25 @@ const ProductManagementPage: React.FC = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Product Name</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Brand</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Merchant ID</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Product ID</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Quantity</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Price</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Total Value</th>
+                {/* Edit removed per request - no actions column */}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {products.map((mp) => (
-                <tr key={mp.merchantProductId} className="hover:bg-gray-50 transition-colors">
+              {products.map((item) => (
+                <tr key={`${item.merchantId}-${item.productId}`} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-700">{item.merchantId}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="font-medium text-gray-900">{mp.product.name}</div>
-                    <div className="text-xs text-gray-500">ID: {mp.product.productId}</div>
+                    <div className="font-medium text-gray-900">{item.productId}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-600">{mp.product.category}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-600">{mp.product.brand}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${mp.quantity > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {mp.quantity > 0 ? 'In Stock' : 'Out of Stock'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => navigate(`/merchant/products/${mp.product.productId}/edit`)}
-                      className="text-blue-600 hover:text-blue-900 mr-4"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(mp.product.productId)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
-                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-700">{item.quantity}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-700">${(item.price || 0).toFixed(2)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-700">${((item.totalValue !== undefined) ? item.totalValue : (item.quantity * (item.price || 0))).toFixed(2)}</td>
+                  {/* no actions - edit removed */}
                 </tr>
               ))}
             </tbody>

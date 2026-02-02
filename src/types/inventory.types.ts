@@ -4,6 +4,7 @@ export interface InventoryItem {
   productId: string;
   quantity: number;
   price: number;
+  totalValue?: number;
   createdAt?: string;
   updatedAt?: string;
 }

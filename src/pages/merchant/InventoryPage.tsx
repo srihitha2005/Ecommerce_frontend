@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { inventoryService } from '../../api/inventory.api';
 import { useAuth } from '../../hooks/useAuth';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import InventoryManager from '../../components/merchant/InventoryManager'; // Assuming you have this component
+// InventoryManager removed — inventory is now read-only from merchant product pages
 import { toast } from 'react-toastify';
 
 const InventoryPage: React.FC = () => {
@@ -45,7 +45,26 @@ const InventoryPage: React.FC = () => {
       </div>
       
       <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-        <InventoryManager inventory={inventory} onRefresh={fetchInventory} />
+        <div className="overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Product ID</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Quantity</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold">Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              {inventory.map((item, idx) => (
+                <tr key={idx} className="border-b hover:bg-gray-50">
+                  <td className="px-6 py-3">{item.productId || item.id}</td>
+                  <td className="px-6 py-3">{item.quantity}</td>
+                  <td className="px-6 py-3">${(item.price || 0).toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
