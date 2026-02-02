@@ -12,7 +12,6 @@ const OrderManagement: React.FC<OrderManagementProps> = ({ orders, onRefresh }) 
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [newStatus, setNewStatus] = useState('');
 
-  // FIXED: orderId parameter changed from number to string
   const handleStatusChange = async (orderId: string) => {
     if (!newStatus) {
       toast.error('Please select a status');
@@ -66,7 +65,6 @@ const OrderManagement: React.FC<OrderManagementProps> = ({ orders, onRefresh }) 
             {orders.map(order => (
               <tr key={order.orderId} className="border-b hover:bg-gray-50">
                 <td className="px-6 py-3 font-semibold">#{order.orderId}</td>
-                {/* FIXED: Price string conversion */}
                 <td className="px-6 py-3">${Number(order.totalAmount).toFixed(2)}</td>
                 <td className="px-6 py-3">
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(order.status)}`}>
@@ -112,7 +110,8 @@ const OrderManagement: React.FC<OrderManagementProps> = ({ orders, onRefresh }) 
 
             <div className="flex gap-4">
               <button
-                onClick={() => handleStatusChange(selectedOrder.orderId)}
+                // FIXED: Wrapped orderId in String() to match function signature
+                onClick={() => handleStatusChange(String(selectedOrder.orderId))}
                 className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
               >
                 Update

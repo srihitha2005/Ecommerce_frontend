@@ -1,17 +1,25 @@
 export interface OrderItem {
-  id: string;
-  merchantProductId: string;
+  id?: string; // Optional because local storage might not have DB ID
+  merchantProductId?: string;
+  productId?: string; // ✅ Added: To match Local Storage format
   productName: string;
-  productImage: string;
-  price: string;
+  productImage?: string;
+  price: string | number; // Accept both for flexibility
   quantity: number;
-  orderId: string;
+  orderId?: string | number;
 }
 
 export interface Order {
-  orderId: string;
-  totalAmount: string;
-  status: 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'PROCESSING';
+  orderId: string | number;
+  totalAmount: string | number;
+  status:
+    | "PENDING"
+    | "CONFIRMED"
+    | "SHIPPED"
+    | "DELIVERED"
+    | "CANCELLED"
+    | "PROCESSING"
+    | string;
   orderDate: string;
   deliveryDate?: string;
   items?: OrderItem[];
@@ -20,10 +28,11 @@ export interface Order {
   merchantId?: string;
 }
 
+// ... keep existing interfaces for MerchantOrder, etc.
 export interface MerchantOrder {
   orderId: string;
   totalAmount: string;
-  status: 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'PROCESSING';
+  status: string;
   orderDate: string;
   deliveryDate?: string;
   items?: OrderItem[];
@@ -41,7 +50,7 @@ export interface CheckoutRequest {
 export interface CheckoutResponse {
   success: boolean;
   message: string;
-  data: string; // orderId
+  data: any;
 }
 
 export interface OrderHistoryResponse {
@@ -54,10 +63,4 @@ export interface OrderDetailResponse {
   success: boolean;
   message: string;
   data: Order;
-}
-
-export interface MerchantOrdersResponse {
-  success: boolean;
-  message: string;
-  data: MerchantOrder[];
 }

@@ -1,10 +1,10 @@
 export interface User {
   userId?: number;
   id?: string | number;
-  email: string;
+  email?: string;
   fullName?: string;
   full_name?: string;
-  role: 'CUSTOMER' | 'MERCHANT';
+  role: "CUSTOMER" | "MERCHANT";
 }
 
 export interface MerchantProfile {
@@ -52,7 +52,11 @@ export interface AuthContextType {
   token: string | null;
   merchantProfile: MerchantProfile | null;
   customerProfile: CustomerProfile | null;
-  login: (email: string, password: string, role?: 'CUSTOMER' | 'MERCHANT') => Promise<void>;
+  login: (
+    email: string,
+    password: string,
+    role?: "CUSTOMER" | "MERCHANT",
+  ) => Promise<void>;
   registerCustomer: (data: RegisterCustomerRequest) => Promise<void>;
   registerMerchant: (data: RegisterMerchantRequest) => Promise<void>;
   logout: () => void;

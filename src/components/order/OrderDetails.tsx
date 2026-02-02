@@ -25,7 +25,8 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
         </div>
         <div>
           <p className="text-sm text-gray-600">Total Amount</p>
-          <p className="font-bold text-lg">${parseFloat(order.totalAmount).toFixed(2)}</p>
+          {/* FIXED: Used Number() */}
+          <p className="font-bold text-lg">${Number(order.totalAmount).toFixed(2)}</p>
         </div>
       </div>
 
@@ -46,7 +47,8 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order }) => {
                   <p className="font-semibold">{item.productName}</p>
                   <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                 </div>
-                <p className="font-bold">${parseFloat(item.price).toFixed(2)}</p>
+                {/* FIXED: Used Number() */}
+                <p className="font-bold">${Number(item.price).toFixed(2)}</p>
               </div>
             ))}
           </div>

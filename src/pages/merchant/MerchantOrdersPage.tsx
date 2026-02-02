@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { orderService } from '../../api/order.api';
-import { Order } from '../../types/order.types';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
-import OrderManagement from '../../components/merchant/OrderManagement';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect } from "react";
+import { orderService } from "../../api/order.api";
+import { Order } from "../../types/order.types";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import OrderManagement from "../../components/merchant/OrderManagement";
+import { toast } from "react-toastify";
 
 const MerchantOrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -17,14 +17,15 @@ const MerchantOrdersPage: React.FC = () => {
     try {
       setLoading(true);
       const response = await orderService.getMerchantOrders();
-      if (response.success) {
-        setOrders(response.data);
+      const apiResponse = response.data; // Extract the ApiResponse from axios response
+      if (apiResponse.success) {
+        setOrders(apiResponse.data);
       } else {
-        toast.error(response.message);
+        toast.error(apiResponse.message);
       }
     } catch (error) {
-      console.error('Error fetching orders:', error);
-      toast.error('Failed to load orders');
+      console.error("Error fetching orders:", error);
+      toast.error("Failed to load orders");
     } finally {
       setLoading(false);
     }

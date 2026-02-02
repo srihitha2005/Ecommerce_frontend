@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import ProductImageGallery from '../../components/product/ProductImageGallery';
-import RatingStars from '../../components/review/RatingStars';
-import ReviewList from '../../components/review/ReviewList';
-import ReviewForm from '../../components/review/ReviewForm';
-import { productService } from '../../api/product.api';
-import { reviewService } from '../../api/review.api';
-import { Product } from '../../types/product.types';
-import { Review } from '../../types/review.types';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { useCart } from '../../hooks/useCart';
-import { useAuth } from '../../hooks/useAuth';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import ProductImageGallery from "../../components/product/ProductImageGallery";
+import RatingStars from "../../components/review/RatingStars";
+import ReviewList from "../../components/review/ReviewList";
+import ReviewForm from "../../components/review/ReviewForm";
+import { productService } from "../../api/product.api";
+import { reviewService } from "../../api/review.api";
+import { Product } from "../../types/product.types";
+import { Review } from "../../types/review.types";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import { useCart } from "../../hooks/useCart";
+import { useAuth } from "../../hooks/useAuth";
+import { toast } from "react-toastify";
 
 const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -40,7 +40,7 @@ const ProductDetailPage: React.FC = () => {
     try {
       setLoading(true);
       console.log("📡 Step 1: Fetching core product data...");
-      
+
       // 1. Fetch the product first and wait for it
       const productRes = await productService.getProductById(id);
 
@@ -48,9 +48,9 @@ const ProductDetailPage: React.FC = () => {
         console.log("✅ Product loaded. UI will now display.");
         setProduct(productRes.data);
         // WE STOP LOADING HERE so the user isn't stuck behind a spinner
-        setLoading(false); 
+        setLoading(false);
       } else {
-        toast.error(productRes.message || 'Product not found');
+        toast.error(productRes.message || "Product not found");
         setLoading(false);
         return;
       }
@@ -58,17 +58,25 @@ const ProductDetailPage: React.FC = () => {
       // 2. Fetch secondary data (reviews/ratings) without 'await'
       // This allows them to load in the background without blocking the page
       console.log("📡 Step 2: Fetching reviews in background...");
-      
-      reviewService.getProductReviews(id)
+
+      reviewService
+        .getProductReviews(id)
         .then((reviewsRes) => {
           if (reviewsRes.success) {
             console.log("✅ Reviews loaded in background");
             setReviews(reviewsRes.data);
-            
+
             // Calculate average rating from reviews
             if (reviewsRes.data.length > 0) {
-              const avgRating = reviewsRes.data.reduce((sum, review) => sum + review.rating, 0) / reviewsRes.data.length;
-              console.log("⭐ Calculated average rating:", avgRating.toFixed(2));
+              const avgRating =
+                reviewsRes.data.reduce(
+                  (sum, review) => sum + review.rating,
+                  0,
+                ) / reviewsRes.data.length;
+              console.log(
+                "⭐ Calculated average rating:",
+                avgRating.toFixed(2),
+              );
               setAverageRating(avgRating);
             }
           }
@@ -77,10 +85,9 @@ const ProductDetailPage: React.FC = () => {
           // If reviews fail, we just log it. The user still sees the product!
           console.warn("⚠️ Reviews failed to load, but that's okay:", err);
         });
-
     } catch (error) {
-      console.error('🔥 Critical error fetching product:', error);
-      toast.error('Failed to load product details');
+      console.error("🔥 Critical error fetching product:", error);
+      toast.error("Failed to load product details");
       setLoading(false);
     }
   };
@@ -88,7 +95,9 @@ const ProductDetailPage: React.FC = () => {
   const handleAddToCart = async () => {
     // 1. Safety check to satisfy TypeScript (fixes TS18047)
     if (!product) {
-      console.warn("⚠️ [ProductDetail] Add to cart failed: Product not loaded yet.");
+      console.warn(
+        "⚠️ [ProductDetail] Add to cart failed: Product not loaded yet.",
+      );
       return;
     }
 
@@ -96,14 +105,15 @@ const ProductDetailPage: React.FC = () => {
       console.log("🛒 [ProductDetail] Attempting to add to cart...");
       setLoading(true); // Assuming you have a local loading state
 
-      // 2. Await the context function. 
-      // Use productId if available, fallback to id
-      const merchantProductId = product.productId ?? product.id;
+      // 2. Await the context function.
+      // Construct merchantProductId based on the pattern from the API example
+      const merchantProductId = product.productId
+        ? product.productId.replace("PRO", "-4PROt")
+        : product.id;
       await addToCart(merchantProductId, quantity);
-      
+
       console.log("✅ [ProductDetail] CartContext reported success.");
       // Note: Do NOT add a toast.success here, because your CartContext already shows one.
-      
     } catch (error: any) {
       console.error("❌ [ProductDetail] Add to cart failed:", error);
       // The error toast is already handled inside CartContext.tsx
@@ -115,19 +125,21 @@ const ProductDetailPage: React.FC = () => {
   const handleBuyNow = async () => {
     if (!product) return;
     if (!isAuthenticated || !isCustomer) {
-      toast.warning('Please login to purchase');
-      navigate('/login');
+      toast.warning("Please login to purchase");
+      navigate("/login");
       return;
     }
 
     try {
-      const merchantProductId = product.productId ?? product.id;
+      const merchantProductId = product.productId
+        ? product.productId.replace("PRO", "-4PROt")
+        : product.id;
       await addToCart(merchantProductId, quantity);
       toast.success(`${product.name} added to cart! Proceeding to checkout...`);
-      navigate('/checkout');
+      navigate("/checkout");
     } catch (error) {
-      console.error('Error processing order:', error);
-      toast.error('Failed to process order');
+      console.error("Error processing order:", error);
+      toast.error("Failed to process order");
     }
   };
 
@@ -163,8 +175,12 @@ const ProductDetailPage: React.FC = () => {
           <p className="text-gray-600 mb-6">{product.description}</p>
 
           <div className="bg-gray-50 p-4 rounded-lg mb-6">
-            <p className="text-gray-600">Brand: <strong>{product.brand}</strong></p>
-            <p className="text-gray-600">Category: <strong>{product.category}</strong></p>
+            <p className="text-gray-600">
+              Brand: <strong>{product.brand}</strong>
+            </p>
+            <p className="text-gray-600">
+              Category: <strong>{product.category}</strong>
+            </p>
           </div>
 
           {/* Quantity and Actions */}
@@ -186,12 +202,12 @@ const ProductDetailPage: React.FC = () => {
             </div>
 
             <button
-  onClick={handleAddToCart}
-  disabled={!product || loading} // Disable if product is missing or currently adding
-  className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50"
->
-  {loading ? 'Adding...' : 'Add to Cart'}
-</button>
+              onClick={handleAddToCart}
+              disabled={!product || loading} // Disable if product is missing or currently adding
+              className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50"
+            >
+              {loading ? "Adding..." : "Add to Cart"}
+            </button>
 
             <button
               onClick={handleBuyNow}
@@ -203,7 +219,14 @@ const ProductDetailPage: React.FC = () => {
 
           {!isAuthenticated && (
             <p className="text-sm text-gray-600">
-              Please <button onClick={() => navigate('/login')} className="text-blue-600 hover:underline">login</button> to add items to cart
+              Please{" "}
+              <button
+                onClick={() => navigate("/login")}
+                className="text-blue-600 hover:underline"
+              >
+                login
+              </button>{" "}
+              to add items to cart
             </p>
           )}
         </div>
@@ -215,7 +238,11 @@ const ProductDetailPage: React.FC = () => {
 
         {isAuthenticated && isCustomer && (
           <div className="mb-8">
-            <ReviewForm productId={id!} reviews={reviews} onReviewAdded={fetchProductDetails} />
+            <ReviewForm
+              productId={id!}
+              reviews={reviews}
+              onReviewAdded={fetchProductDetails}
+            />
           </div>
         )}
 

@@ -9,7 +9,8 @@ interface MerchantDashboardProps {
 
 const MerchantDashboard: React.FC<MerchantDashboardProps> = ({ orders, onOrdersRefresh }) => {
   const totalOrders = orders.length;
-  const totalRevenue = orders.reduce((sum, order) => sum + parseFloat(order.totalAmount), 0);
+  // FIXED: Used Number() instead of parseFloat() to handle both string/number types
+  const totalRevenue = orders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
   const deliveredOrders = orders.filter(o => o.status === 'DELIVERED').length;
   const pendingOrders = orders.filter(o => o.status === 'PENDING' || o.status === 'CONFIRMED').length;
 
@@ -68,7 +69,8 @@ const MerchantDashboard: React.FC<MerchantDashboardProps> = ({ orders, onOrdersR
                 {orders.slice(0, 5).map(order => (
                   <tr key={order.orderId} className="border-b hover:bg-gray-50">
                     <td className="py-2">#{order.orderId}</td>
-                    <td className="py-2">${parseFloat(order.totalAmount).toFixed(2)}</td>
+                    {/* FIXED: Used Number() */}
+                    <td className="py-2">${Number(order.totalAmount).toFixed(2)}</td>
                     <td className="py-2">
                       <span className="px-2 py-1 rounded text-sm bg-blue-100 text-blue-800">
                         {order.status}

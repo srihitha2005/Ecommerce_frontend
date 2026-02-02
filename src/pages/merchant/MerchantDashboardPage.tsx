@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import MerchantDashboard from '../../components/merchant/MerchantDashboard';
-import { orderService } from '../../api/order.api';
-import { Order } from '../../types/order.types';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import MerchantDashboard from "../../components/merchant/MerchantDashboard";
+import { orderService } from "../../api/order.api";
+import { Order } from "../../types/order.types";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import { toast } from "react-toastify";
 
 const MerchantDashboardPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -19,14 +19,15 @@ const MerchantDashboardPage: React.FC = () => {
     try {
       setLoading(true);
       const response = await orderService.getMerchantOrders();
-      if (response.success) {
-        setOrders(response.data);
+      const apiResponse = response.data; // Extract the ApiResponse from axios response
+      if (apiResponse.success) {
+        setOrders(apiResponse.data);
       } else {
-        toast.error(response.message);
+        toast.error(apiResponse.message);
       }
     } catch (error) {
-      console.error('Error fetching orders:', error);
-      toast.error('Failed to load orders');
+      console.error("Error fetching orders:", error);
+      toast.error("Failed to load orders");
     } finally {
       setLoading(false);
     }
@@ -42,19 +43,19 @@ const MerchantDashboardPage: React.FC = () => {
         <h1 className="text-3xl font-bold mb-4">Merchant Dashboard</h1>
         <div className="flex gap-4">
           <button
-            onClick={() => navigate('/merchant/products')}
+            onClick={() => navigate("/merchant/products")}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
           >
             Manage Products
           </button>
           <button
-            onClick={() => navigate('/merchant/inventory')}
+            onClick={() => navigate("/merchant/inventory")}
             className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700"
           >
             Manage Inventory
           </button>
           <button
-            onClick={() => navigate('/merchant/add-product')}
+            onClick={() => navigate("/merchant/add-product")}
             className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700"
           >
             Add New Product

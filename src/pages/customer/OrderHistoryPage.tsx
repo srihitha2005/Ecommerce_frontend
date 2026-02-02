@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { orderService } from '../../api/order.api';
-import { Order } from '../../types/order.types';
-import OrderCard from '../../components/order/OrderCard';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { orderService } from "../../api/order.api";
+import { Order } from "../../types/order.types";
+import OrderCard from "../../components/order/OrderCard";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const OrderHistoryPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -19,14 +19,26 @@ const OrderHistoryPage: React.FC = () => {
     try {
       setLoading(true);
       const response = await orderService.getOrderHistory();
-      if (response.success) {
-        setOrders(response.data);
+      const apiResponse = response.data; // Extract the ApiResponse from axios response
+      console.log("Order history response:", apiResponse);
+      if (apiResponse.success) {
+        console.log("Orders fetched:", apiResponse.data);
+
+        // Normalize the order data to match our types
+        const normalizedOrders = apiResponse.data.map((order: Order) => ({
+          ...order,
+          orderId: String(order.orderId),
+          totalAmount: String(order.totalAmount),
+          items: order.items || [], // Ensure items is always an array
+        }));
+
+        setOrders(normalizedOrders);
       } else {
-        toast.error(response.message);
+        toast.error(apiResponse.message);
       }
     } catch (error) {
-      console.error('Error fetching orders:', error);
-      toast.error('Failed to load orders');
+      console.error("Error fetching orders:", error);
+      toast.error("Failed to load orders");
     } finally {
       setLoading(false);
     }
@@ -44,7 +56,7 @@ const OrderHistoryPage: React.FC = () => {
         <div className="bg-gray-50 rounded-lg p-8 text-center">
           <p className="text-gray-600 text-xl mb-4">No orders yet</p>
           <button
-            onClick={() => navigate('/products')}
+            onClick={() => navigate("/products")}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
           >
             Start Shopping
@@ -52,11 +64,13 @@ const OrderHistoryPage: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {orders.map(order => (
+          {orders.map((order) => (
             <OrderCard
               key={order.orderId}
               order={order}
-              onClick={() => navigate(`/orders/${order.orderId}`)}
+              onClick={() =>
+                navigate(`/orders/${order.orderId}`, { state: { order } })
+              }
             />
           ))}
         </div>

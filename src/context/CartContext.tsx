@@ -1,18 +1,21 @@
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import { orderService } from '../api/order.api';
-import { Cart, CartContextType } from '../types/cart.types';
-import { useAuth } from '../hooks/useAuth';
-import { toast } from 'react-toastify';
+import React, { createContext, useState, useEffect, ReactNode } from "react";
+import { orderService } from "../api/order.api";
+import { Cart, CartContextType } from "../types/cart.types";
+import { useAuth } from "../hooks/useAuth";
+import { toast } from "react-toastify";
 
-export const CartContext = createContext<CartContextType | undefined>(undefined);
+export const CartContext = createContext<CartContextType | undefined>(
+  undefined,
+);
 
-export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const CartProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(false);
   const { isAuthenticated, isCustomer } = useAuth();
 
   useEffect(() => {
-    console.log(`🔄 [CartContext] Auth Trigger: Auth=${isAuthenticated}, Cust=${isCustomer}`);
     if (isAuthenticated && isCustomer) {
       fetchCart();
     } else {
@@ -21,66 +24,65 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [isAuthenticated, isCustomer]);
 
   const fetchCart = async () => {
-    console.group("📡 [CartContext] Fetching Cart Data");
     try {
       setLoading(true);
       const response = await orderService.getCart();
-      console.log("📥 [CartContext] Received Data:", response.data);
-      setCart(response.data);
+      if (response.data && response.data.success) {
+        setCart(response.data.data);
+      }
     } catch (error: any) {
-      console.error("❌ [CartContext] Error:", error.response?.status, error.message);
-      if (error.response?.status !== 404 && error.response?.status !== 403) {
-        toast.error('Failed to load cart');
+      if (error.response?.status !== 404) {
+        console.error("Failed to load cart", error);
       }
     } finally {
       setLoading(false);
-      console.groupEnd();
     }
   };
 
   const addToCart = async (merchantProductId: string, quantity: number) => {
-    console.log(`➕ [CartContext] Adding: ${merchantProductId} (Qty: ${quantity})`);
     if (!isAuthenticated || !isCustomer) {
-      toast.error('Please login as a customer to add items');
+      toast.error("Please login as a customer");
       return;
     }
     try {
       setLoading(true);
-      const response = await orderService.addToCart({ merchantProductId, quantity });
-      // The backend may return null data for add-to-cart (it enqueues or returns no payload).
-      // Avoid overwriting the local cart state with null — fetch the latest cart instead.
+      const response = await orderService.addToCart({
+        merchantProductId,
+        quantity,
+      });
       await fetchCart();
-      toast.success(response.message || 'Added to cart');
+      toast.success(response.data.message || "Added to cart");
     } catch (error: any) {
-      console.error("❌ [CartContext] Add Error:", error);
-      toast.error(error.response?.data?.message || 'Add failed');
+      toast.error(error.response?.data?.message || "Add failed");
     } finally {
       setLoading(false);
     }
   };
 
   const removeFromCart = async (merchantProductId: string) => {
-    console.log(`🗑️ [CartContext] Removing: ${merchantProductId}`);
     try {
       setLoading(true);
       await orderService.removeFromCart(merchantProductId);
-      toast.success('Removed');
+      toast.success("Item removed");
       await fetchCart();
     } catch (error) {
-      toast.error('Remove failed');
+      toast.error("Remove failed");
     } finally {
       setLoading(false);
     }
   };
 
-  const updateQuantity = async (merchantProductId: string, quantity: number) => {
+  const updateQuantity = async (
+    merchantProductId: string,
+    quantity: number,
+  ) => {
     if (quantity < 1) return removeFromCart(merchantProductId);
     try {
       setLoading(true);
       await orderService.updateCartItem(merchantProductId, quantity);
       await fetchCart();
     } catch (error) {
-      toast.error('Update failed');
+      toast.error("Update failed");
     } finally {
       setLoading(false);
     }
@@ -91,20 +93,93 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(true);
       await orderService.clearCart();
       setCart(null);
-      toast.success('Cart cleared');
+      toast.success("Cart cleared");
     } catch (error) {
-      toast.error('Clear failed');
+      toast.error("Clear failed");
     } finally {
       setLoading(false);
     }
   };
 
-  const itemCount = cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+  const checkout = async (checkoutData?: {
+    paymentMethod: string;
+    shippingAddress: string;
+    email: string;
+  }): Promise<number> => {
+    console.log("🛒 [CartContext] Processing checkout...");
+    try {
+      setLoading(true);
+      const response = await orderService.checkout();
+      const newOrderId = response.data.data.orderId;
+
+      console.log(
+        "✅ [CartContext] Checkout successful, Order ID:",
+        newOrderId,
+      );
+
+      if (cart && checkoutData) {
+        const orderDetails = {
+          orderId: newOrderId,
+          totalAmount: cart.totalValue,
+          status: "CONFIRMED",
+          orderDate: new Date().toISOString(),
+          items: cart.items.map((item) => {
+            // Get product name - use product.name if available, otherwise fallback
+            const productName = item.product?.name || "Product";
+
+            console.log(
+              `💾 [CartContext] Saving item: ${productName} (merchantProductId: ${item.merchantProductId})`,
+            );
+
+            return {
+              productId: item.merchantProductId,
+              productName: productName,
+              quantity: item.quantity,
+              price: item.price,
+            };
+          }),
+          paymentMethod: checkoutData.paymentMethod,
+          shippingAddress: checkoutData.shippingAddress,
+          customerEmail: checkoutData.email,
+        };
+
+        const existingOrders = JSON.parse(
+          localStorage.getItem("userOrders") || "[]",
+        );
+        existingOrders.push(orderDetails);
+        localStorage.setItem("userOrders", JSON.stringify(existingOrders));
+
+        console.log("💾 [CartContext] Order details cached locally");
+      }
+
+      setCart(null);
+      return newOrderId;
+    } catch (error: any) {
+      console.error("❌ [CartContext] Checkout failed:", error);
+      toast.error(error.response?.data?.message || "Checkout failed");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const itemCount =
+    cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
 
   return (
-    <CartContext.Provider value={{
-      cart, loading, addToCart, removeFromCart, updateQuantity, clearCart, fetchCart, itemCount
-    }}>
+    <CartContext.Provider
+      value={{
+        cart,
+        loading,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        checkout,
+        fetchCart,
+        itemCount,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
